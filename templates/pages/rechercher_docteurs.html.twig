@@ -8,19 +8,19 @@ if (empty($_SESSION['user_id'])) {
 try{
     require_once '../backend/autoloader.php';
     $repo = new Repository_database();
-    
+
     // On récupère les données filtrées
     $name = $_GET['name'] ?? '';
     $location = $_GET['location'] ?? '';
     $specialization = $_GET['specialization'] ?? '';
-    
+
     $doctors = $repo->FilterDoctorsByname_location_specialization($name, $location, $specialization);
-    
+
     // Récupérer toutes les spécialités et régions pour les filtres
     $all_doctors = $repo->getAllDoctors();
     $specializations = [];
     $locations = [];
-    
+
     foreach ($all_doctors as $doc) {
         if (!in_array($doc['specialization'], $specializations)) {
             $specializations[] = $doc['specialization'];
@@ -29,10 +29,10 @@ try{
             $locations[] = $doc['office_place'] ?? $doc['location'] ?? '';
         }
     }
-    
+
     sort($specializations);
     sort($locations);
-    
+
 } catch (Exception $e) {
     $doctors = [];
     $specializations = [];
@@ -53,9 +53,9 @@ try{
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    
-    <link rel="stylesheet" href="rechercher_docteurs.css" />
-    <script src="rechercher_docteurs.js" defer></script>
+
+    <link rel="stylesheet" href="{{ asset('css/rechercher_docteurs.css') }}" />
+    <script src="{{ asset('js/rechercher_docteurs.js') }}" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
@@ -133,7 +133,7 @@ try{
             </div>
         <?php else: ?>
             <?php foreach ($doctors as $doc): ?>
-              <?php 
+              <?php
                 $docImagePath = !empty($doc['photo']) ? '../view profile/' . $doc['photo'] : 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
               ?>
               <div class="doctor-card">
@@ -146,7 +146,7 @@ try{
                     <p class="specialty"><?= htmlspecialchars($doc['specialization']) ?></p>
                     <div class="rating">★ <?= htmlspecialchars($doc['rating']) ?> (<?= htmlspecialchars($doc['review_count']) ?> reviews)</div>
                     <p class="bio"><?= htmlspecialchars($doc['bio'] ?: 'Board-certified ' . $doc['specialization'] . ' with extensive experience in clinical practice.') ?></p>
-                    
+
                     <div class="info-box">
                         <span>Fee: <b><?= htmlspecialchars($doc['fee']) ?></b></span>
                         <span>Exp: <b><?= htmlspecialchars($doc['experience'] ?: '5+ Years') ?></b></span>
@@ -175,12 +175,12 @@ try{
         const specialization = document.getElementById('spec-filter').value;
         const location = document.getElementById('loc-filter').value;
         const name = document.querySelector('.search-input').value;
-        
+
         const params = new URLSearchParams();
         if (name) params.append('name', name);
         if (location) params.append('location', location);
         if (specialization) params.append('specialization', specialization);
-        
+
         window.location.href = '?' + params.toString();
       }
     </script>

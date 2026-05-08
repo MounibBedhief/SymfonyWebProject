@@ -63,7 +63,7 @@ try {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Doctor Calendar</title>
-  <link rel="stylesheet" href="doctor_calendar.css" />
+  <link rel="stylesheet" href="{{ asset('css/doctor_calendar.css') }}" />
 </head>
 
 <body>
@@ -177,7 +177,7 @@ try {
   <script>
     window.DB_EVENTS = <?= json_encode($dbEvents) ?>;
   </script>
-  <script src="doctor_calendar.js"></script>
+  <script src="{{ asset('js/doctor_calendar.js') }}"></script>
 </body>
 
 </html>

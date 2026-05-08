@@ -22,7 +22,7 @@ $docImagePath = !empty($doctor['image_path']) ? $doctor['image_path'] : 'https:/
     <meta charset="UTF-8" />
     <title><?= (strpos($doctor['name'], 'Dr.') === 0) ? htmlspecialchars($doctor['name']) : 'Dr. ' . htmlspecialchars($doctor['name']) ?> | HealthConnect</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="view-profile.css" />
+    <link rel="stylesheet" href="{{ asset('css/view-profile.css') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   </head>
@@ -52,7 +52,7 @@ $docImagePath = !empty($doctor['image_path']) ? $doctor['image_path'] : 'https:/
             <div class="profile-image-section">
               <img src="<?= htmlspecialchars($docImagePath); ?>" alt="<?= htmlspecialchars($doctor['name']); ?>" class="profile-large-img">
             </div>
-            
+
             <div class="profile-info-section">
               <div class="title-meta">
                 <span class="specialty-badge"><?= htmlspecialchars($doctor['specialization']); ?></span>

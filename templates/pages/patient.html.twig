@@ -11,13 +11,13 @@ try {
     $repo = new Repository_database();
 
     $repo->markPastScheduledAppointmentsAsCompleted();
-    
+
     // On récupère les données
     $result = $repo->getAllAppointmentsForPatient($_SESSION['user_id']);
-    
+
     // FORCE le type tableau même si le repo renvoie null par erreur
     $consultations = is_array($result) ? $result : [];
-    
+
 } catch (Exception $e) {
     $consultations = []; // Sécurité en cas d'exception
     $error_db = $e->getMessage();
@@ -39,9 +39,9 @@ try {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    
-    <link rel="stylesheet" href="patient.css" />
-    <script src="patient.js" defer></script>
+
+    <link rel="stylesheet" href="{{ asset('css/patient.css') }}" />
+    <script src="{{ asset('js/patient.js') }}" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
@@ -100,23 +100,23 @@ try {
         <td><?= htmlspecialchars($consultation['type_cons']) ?></td>
         <td><?= htmlspecialchars($consultation['doctor_name']) ?></td>
         <td>
-            <?php 
+            <?php
             $status = $consultation['status_cons'];
-            $badgeClass = 'bg-secondary'; 
+            $badgeClass = 'bg-secondary';
 
             switch($status) {
                 case 'Completed':
-                    $badgeClass = 'bg-success'; 
+                    $badgeClass = 'bg-success';
                     break;
                 case 'Scheduled':
-                    $badgeClass = 'bg-primary'; 
+                    $badgeClass = 'bg-primary';
                     break;
                 case 'Cancelled':
                 case 'Canceled':
-                    $badgeClass = 'bg-danger';  
+                    $badgeClass = 'bg-danger';
                     break;
                 case 'No-Show':
-                    $badgeClass = 'bg-warning text-dark'; 
+                    $badgeClass = 'bg-warning text-dark';
                     break;
             }
             ?>
@@ -126,8 +126,8 @@ try {
         </td>
         <td class="text-end">
     <?php if (!empty($consultation['prescription_path'])): ?>
-        <a href="../uploads/prescriptions/<?= $consultation['prescription_path'] ?>" 
-           class="btn btn-sm btn-outline-danger" 
+        <a href="../uploads/prescriptions/<?= $consultation['prescription_path'] ?>"
+           class="btn btn-sm btn-outline-danger"
            download>
            PDF
         </a>
@@ -155,7 +155,7 @@ try {
             },
             "order": [[ 0, "desc" ]],
             "pageLength": 7,
-            "dom": 'rtip', 
+            "dom": 'rtip',
             "columnDefs": [
                 { "orderable": false, "targets": 4 }
             ]

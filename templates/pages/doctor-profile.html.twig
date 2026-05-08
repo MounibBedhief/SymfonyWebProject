@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
     $email = trim($_POST['email']);
     $about = trim($_POST['about']);
     $office_place = trim($_POST['office_place'] ?? '');
-    
+
     // Handle Image Upload
     $image_path = null;
     if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
             }
         }
     }
-    
+
     if ($image_path) {
         $updateStmt = $db->prepare("UPDATE Doctor SET name = ?, specialization = ?, experience = ?, consultation_fee = ?, hospital = ?, phone = ?, email = ?, about = ?, office_place = ?, image_path = ? WHERE id = ?");
         $params = [$name, $specialization, $experience, $consultation_fee, $hospital, $phone, $email, $about, $office_place, $image_path, $doctor_id];
@@ -73,10 +73,10 @@ $displayImage = ($doctor && !empty($doctor['image_path'])) ? $doctor['image_path
     <meta charset="UTF-8" />
     <title>Manage Profile | HealthConnect</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="view-profile.css" />
+    <link rel="stylesheet" href="{{ asset('css/view-profile.css') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="doctor-profile.css" />
+    <link rel="stylesheet" href="{{ asset('css/doctor-profile.css') }}" />
   </head>
   <body>
     <!-- Consistent Navbar -->
@@ -114,7 +114,7 @@ $displayImage = ($doctor && !empty($doctor['image_path'])) ? $doctor['image_path
             <div class="profile-image-section">
               <img src="<?= $displayImage ?>" alt="<?= htmlspecialchars($doctor['name']) ?>" class="profile-large-img">
             </div>
-            
+
             <div class="profile-info-section">
               <div class="title-meta">
                 <span class="specialty-badge"><?= htmlspecialchars($doctor['specialization']) ?></span>
@@ -251,6 +251,6 @@ $displayImage = ($doctor && !empty($doctor['image_path'])) ? $doctor['image_path
       <p>&copy; 2026 HealthConnect. All rights reserved.</p>
     </footer>
 
-    <script src="doctor-profile.js"></script>
+    <script src="{{ asset('js/doctor-profile.js') }}"></script>
   </body>
 </html>

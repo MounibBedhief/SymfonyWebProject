@@ -92,8 +92,8 @@ try {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <link rel="stylesheet" href="prescriptions_doctor.css" />
-    <script src="prescriptions_doctor.js" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/prescriptions_doctor.css') }}" />
+    <script src="{{ asset('js/prescriptions_doctor.js') }}" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
 
@@ -195,10 +195,10 @@ try {
                         <?php else: ?>
                           <form method="POST" enctype="multipart/form-data" class="pdf-upload-form d-inline-flex align-items-center gap-2">
                             <input type="hidden" name="appointment_id" value="<?= (int) $prescription['appointment_id'] ?>">
-            
-            <input type="file" name="prescription_pdf" id="file-<?= $prescription['appointment_id'] ?>" 
+
+            <input type="file" name="prescription_pdf" id="file-<?= $prescription['appointment_id'] ?>"
                    accept="application/pdf" class="custom-file-input" required>
-            
+
             <label for="file-<?= $prescription['appointment_id'] ?>" class="btn btn-sm btn-outline-primary mb-0">
                 Choisir...
             </label>
