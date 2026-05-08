@@ -7,4 +7,10 @@ import './stimulus_bootstrap.js';
  */
 import './styles/app.css';
 
+// Bootstrap
+import 'bootstrap/dist/css/bootstrap.min.css';
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+window.bootstrap = bootstrap;
+
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');

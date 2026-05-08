@@ -1,0 +1,217 @@
+@font-face {
+  font-family: 'Orbitron';
+  src: url(./fonts/Orbitron-Black.ttf) format('truetype');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background: #f8faff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Header */
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 20px 8%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+}
+
+.logo span {
+  color: #1a73e8;
+}
+
+.navigation a {
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+  margin-left: 30px;
+  transition: 0.3s;
+}
+
+.navigation a:hover {
+  color: #1a73e8;
+}
+
+/* Wrapper for the card */
+.wrapper {
+  width: 900px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(26, 115, 232, 0.1);
+  padding: 40px;
+  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  transition: height 0.3s ease;
+}
+
+/* Form title */
+.wrapper h2 {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.subtitle {
+  text-align: center;
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+/* Input box with floating label */
+.input-box {
+  position: relative;
+  width: 100%;
+  margin: 15px 0;
+}
+
+.input-box input,
+.input-box textarea,
+.input-box select {
+  width: 100%;
+  padding: 15px 40px 15px 15px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  outline: none;
+  background: #f8faff;
+  font-size: 15px;
+  color: #333;
+  transition: 0.3s;
+}
+
+.input-box textarea {
+  resize: none;
+  height: 80px;
+}
+
+.input-box select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #f8faff
+    url("data:image/svg+xml,%3Csvg fill='%23444' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  background-size: 18px;
+  padding-right: 40px;
+}
+
+/* Label floating effect */
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  color: #888;
+  pointer-events: none;
+  transition: 0.3s;
+}
+
+.input-box input:focus ~ label,
+.input-box input:valid ~ label,
+.input-box textarea:focus ~ label,
+.input-box textarea:valid ~ label,
+.input-box select:focus ~ label,
+.input-box select:valid ~ label {
+  top: -10px;
+  left: 10px;
+  font-size: 12px;
+  color: #1a73e8;
+  background: #fff;
+  padding: 0 5px;
+}
+
+/* Icon inside input */
+.input-box .icon {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #1a73e8;
+}
+
+/* Button */
+.btn-main {
+  width: 100%;
+  height: 50px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(26, 115, 232, 0.2);
+  transition: 0.3s;
+}
+
+.btn-main:hover {
+  background: #1557b0;
+  transform: translateY(-2px);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 columns */
+  gap: 20px;
+}
+
+/* Make textarea full width */
+.full-width {
+  grid-column: span 2;
+}
+
+/* Make button full width */
+.btn-main.full-width {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Hide date/time text only when empty */
+input[type='date']:not(:focus):invalid,
+input[type='time']:not(:focus):invalid {
+  color: transparent;
+}
+
+/* Hide native calendar & time icon (Chrome, Edge, Safari) */
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+
+/* Responsive: switch to 1 column on small screens */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
+}
