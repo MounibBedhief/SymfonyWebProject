@@ -6,7 +6,9 @@ $(document).ready(function () {
     order: [[0, 'desc']],
     pageLength: 7,
     dom: 'lrtip',
+      lengthMenu: [[7, 10, 25, 50, -1], [7, 10, 25, 50, "Tout"]],
     columnDefs: [{ orderable: false, targets: 4 }],
+      responsive:true
   });
 
   $.fn.dataTable.ext.search.push(function (settings, data) {
