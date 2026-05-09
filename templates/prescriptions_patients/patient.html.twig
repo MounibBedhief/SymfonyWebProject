@@ -1,31 +1,3 @@
-<?php
-session_start();
-
-if (empty($_SESSION['user_id'])) {
-  header('Location: ../login_signup/login-register.php?force_login=1');
-  exit;
-}
-// ... début du fichier ...
-try {
-    require_once '../backend/autoloader.php';
-    $repo = new Repository_database();
-
-    $repo->markPastScheduledAppointmentsAsCompleted();
-
-    // On récupère les données
-    $result = $repo->getAllAppointmentsForPatient($_SESSION['user_id']);
-
-    // FORCE le type tableau même si le repo renvoie null par erreur
-    $consultations = is_array($result) ? $result : [];
-
-} catch (Exception $e) {
-    $consultations = []; // Sécurité en cas d'exception
-    $error_db = $e->getMessage();
-}
-?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -44,7 +16,7 @@ try {
     <script src="{{ asset('js/patient.js') }}" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
-
+{% block body  %}
 <body>
     <div class="body">
         <header class="navbar">
@@ -94,51 +66,42 @@ try {
                                 </tr>
                             </thead>
                             <tbody>
-  <?php foreach ($consultations as $consultation): ?>
+  {% for appt in appointments %}
     <tr>
-        <td><?= htmlspecialchars($consultation['date_cons']) ?></td>
-        <td><?= htmlspecialchars($consultation['type_cons']) ?></td>
-        <td><?= htmlspecialchars($consultation['doctor_name']) ?></td>
+        <td>{{ appt.appointmentDate|date('Y-m-d H:i')}}</td>
+        <td>{{ appt.doctor.specialization }}</td>
+        <td>{{ appt.doctor.name }}</td>
         <td>
-            <?php
-            $status = $consultation['status_cons'];
-            $badgeClass = 'bg-secondary';
+            {% set status=appt.status %}
+            {% if status == 'Completed' %}
+                {% set badgeClass = 'bg-success' %}
+            {% elseif status == 'Scheduled' %}
+                {% set badgeClass = 'bg-primary' %}
+            {% elseif status == 'Cancelled' %}
+                {% set badgeClass = 'bg-danger' %}
+            {% else %}
+                {% set badgeClass = 'bg-secondary' %}
+            {% endif %}
 
-            switch($status) {
-                case 'Completed':
-                    $badgeClass = 'bg-success';
-                    break;
-                case 'Scheduled':
-                    $badgeClass = 'bg-primary';
-                    break;
-                case 'Cancelled':
-                case 'Canceled':
-                    $badgeClass = 'bg-danger';
-                    break;
-                case 'No-Show':
-                    $badgeClass = 'bg-warning text-dark';
-                    break;
-            }
-            ?>
-            <span class="badge <?php echo $badgeClass; ?>">
-                <?php echo htmlspecialchars($status); ?>
+            <span class="badge {{ badgeClass }}">
+                {{ status }}
             </span>
         </td>
         <td class="text-end">
-    <?php if (!empty($consultation['prescription_path'])): ?>
-        <a href="../uploads/prescriptions/<?= $consultation['prescription_path'] ?>"
+            {% if appt.prescriptionPath %}
+        <a href="{{ asset('uploads/prescriptions/' ~ appt.prescriptionPath) }}"
            class="btn btn-sm btn-outline-danger"
            download>
            PDF
         </a>
-    <?php else: ?>
+            {% else %}
         <button class="btn btn-sm btn-outline-secondary" disabled title="Non disponible">
            PDF
         </button>
-    <?php endif; ?>
+            {% endif %}
 </td>
     </tr>
-  <?php endforeach; ?>
+  {% endfor %}
 </tbody>
                         </table>
                     </div>
@@ -146,6 +109,7 @@ try {
             </div>
         </div>
     </div>
+    {% endblock %}
 
     <script>
     $(document).ready(function() {
