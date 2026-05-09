@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TeleMed | Online Healthcare</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/prescriptions_doctor.css') }}" />
+    <script src="{{ asset('js/prescriptions_doctor.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+
+  <body>
+    <div class="body">
+      <header class="navbar">
+        <div class="logo">
+          Health
+          <span>Connect</span>
+        </div>
+        <nav class="nav-links">
+          <a href="../homepage/connected.php">Home</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="../view profile/doctor-profile.php" class="profile-account me-3">
+            <img src="https://img.freepik.com/free-photo/female-doctor-hospital-with-stethoscope_23-2148827774.jpg" alt="Profile" class="profile-avatar">
+            <span class="profile-name"><?= htmlspecialchars($doctorName) ?></span>
+          </a>
+          <a href="../login_signup/logout.php" class="btn-logout">Logout</a>
+          <a href="../doctor_calendar/doctor_calendar.php" class="btn">Calendar</a>
+        </div>
+      </header>
+
+      <div class="container mt-5">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h3>Medical prescriptions</h3>
+          </div>
+          <div class="card-body">
+              {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                  <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }}" role="alert">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              {% endfor %}
+            <div class="row g-3 mb-4 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label small text-muted">Rechercher par nom du patient :</label>
+                <input type="text" id="patientSearch" class="form-control" placeholder="Ex: John Doe">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small text-muted">Date de début :</label>
+                <input type="date" id="minDate" class="form-control">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small text-muted">Date de fin :</label>
+                <input type="date" id="maxDate" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <button id="btnFilter" class="btn btn-primary w-100">Filtrer</button>
+              </div>
+            </div>
+
+            <div class="table-responsive p-3">
+              <table id="prescriptionTable" class="table table-hover align-middle" style="width:100%">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Patient</th>
+                    <th>Medical resume</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for appt in appointments %}
+                    <tr>
+                      <td>{{ appt.appointmentDate|date('Y-m-d H:i') }}</td>
+                      <td>{{ appt.patient.name }}</td>
+                      <td>{{ appt.reason }}</td>
+                        <td>
+                            {% set badgeClass = 'bg-secondary' %}
+                            {% if appt.status == 'Completed' %}
+                                {% set badgeClass = 'bg-success' %}
+                            {% elseif appt.status == 'Scheduled' %}
+                                {% set badgeClass = 'bg-primary' %}
+                            {% elseif appt.status in ['Cancelled', 'Canceled'] %}
+                                {% set badgeClass = 'bg-danger' %}
+                            {% elseif appt.status == 'No-Show' %}
+                                {% set badgeClass = 'bg-warning text-dark' %}
+                            {% endif %}
+                            <span class="badge {{ badgeClass }}">{{ appt.status }}</span>
+                        </td>
+                      <td class="text-end">
+                          {% if appt.prescriptionPath %}
+                          <a href="{{ asset('uploads/prescriptions/' ~ appt.prescriptionPath) }}" class="btn btn-sm btn-outline-success" target="_blank" rel="noopener noreferrer">PDF</a>
+                          {% else %}
+                          <form action="{{ path('app_doctor_prescriptions') }}" method="POST" enctype="multipart/form-data" class="pdf-upload-form d-inline-flex align-items-center gap-2">
+                            <input type="hidden" name="appointment_id" value="{{ appt.id }}">
+
+            <input type="file" name="prescription_pdf" id="file-{{ appt.id}}"
+                   accept="application/pdf" class="custom-file-input" required>
+
+            <label for="file-{{ appt.id }}" class="btn btn-sm btn-outline-primary mb-0">
+                Choisir...
+            </label>
+
+            <button type="submit" name="upload_pdf" class="btn btn-sm btn-primary">
+                Send PDF
+            </button>
+                          </form>
+                          {% endif %}
+                      </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

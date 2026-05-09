@@ -52,8 +52,9 @@ class AppointmentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    public function getAppointmentsForDoctor(User $doctor):array{
+    public function getAppointmentsForDoctor( $doctor):array{
         return $this->createQueryBuilder('a')
+            ->addSelect('p')->join('a.patient', 'p')
             ->where('a.doctor = :doctor')
             ->setParameter('doctor', $doctor)
             ->orderBy('a.appointment_date', 'ASC')
