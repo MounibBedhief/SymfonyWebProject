@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class PrescriptionsDocteurController extends AbstractController
 {
-    #[Route('/doctor/prescriptions', name: 'app_doctor_prescriptions', methods: ['GET', 'POST'])]
+    #[Route('/prescriptions/doctor/', name: 'app_doctor_prescriptions', methods: ['GET', 'POST'])]
     public function prescriptions(
         Request $request,
         AppointmentRepository $appointmentRepo,
