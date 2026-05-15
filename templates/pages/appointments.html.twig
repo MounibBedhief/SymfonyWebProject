@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Appointments</title>
+  <link rel="stylesheet" href="{{ asset('css/appointments.css') }}">
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Health<span>Connect</span></div>
+    <div class="nav-links">
+      <a href="{{ path('home') }}">Home</a>
+      <a href="{{ path('appointments_list') }}">Appointments</a>
+    </div>
+    <div class="nav-actions">
+      <span class="profile-account">
+        <span class="profile-avatar-initials">
+          {{ doctor.name|split(' ')|first|slice(0,1)|upper }}{{ doctor.name|split(' ')|last|slice(0,1)|upper }}
+        </span>
+        <span class="profile-name">{{ doctor.name }}</span>
+      </span>
+    </div>
+  </nav>
+
+  {# ════════ LIST PAGE ════════ #}
+  <div id="listPage" class="page active">
+    <div class="list-wrap">
+      <div class="list-header">
+        <h1>Appointment Requests</h1>
+        <p>Manage your upcoming patient consultations and requests.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value">{{ stats.total }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value">{{ stats.pending }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Scheduled</div>
+          <div class="stat-value">{{ stats.scheduled }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value">{{ stats.completed }}</div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterAppointments('all')">All</button>
+        <button class="filter-btn" onclick="filterAppointments('Pending')">Pending Requests</button>
+        <button class="filter-btn" onclick="filterAppointments('Scheduled')">Upcoming</button>
+      </div>
+
+      <div class="appt-list" id="appointmentsContainer">
+        {% for appt in appointments %}
+          {% set badgeClass = 'badge-new' %}
+          {% if appt.status == 'Pending' %}
+            {% set badgeClass = 'badge-pending' %}
+          {% elseif appt.status == 'Cancelled' or appt.status == 'No-Show' %}
+            {% set badgeClass = 'badge-urgent' %}
+          {% endif %}
+
+          <div class="appt-card" data-status="{{ appt.status }}" onclick="viewDetails({{ appt.id }})">
+            <div class="appt-avatar blue">{{ appt.patient.name|slice(0,1)|upper }}</div>
+            <div>
+              <div class="appt-name">{{ appt.patient.name }}</div>
+              <div class="appt-meta">{{ appt.patient.email }}</div>
+              <div class="appt-reason">{{ appt.reason ?: 'General Consultation' }}</div>
+            </div>
+            <div class="appt-right">
+              <div class="badge {{ badgeClass }}">
+                <span class="badge-dot"></span> {{ appt.status }}
+              </div>
+              <div class="appt-time">{{ appt.appointmentTime|date('H:i') }}</div>
+              <div class="appt-date">{{ appt.appointmentDate|date('M d, Y') }}</div>
+            </div>
+          </div>
+        {% endfor %}
+
+        {% if appointments is empty %}
+          <p style="text-align:center; color: var(--gray-400); padding: 2rem;">No appointments found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# ════════ DETAIL PAGE ════════ #}
+  <div id="detailPage" class="page">
+    <div class="detail-wrap">
+      <button class="back-btn" onclick="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to list
+      </button>
+
+      <div class="status-banner" id="detailBanner">
+        <div class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3" />
+          </svg></div>
+        <div class="status-text">
+          <h2 id="detailStatusLabel">Status</h2>
+          <p id="detailStatusSub">Action required</p>
+        </div>
+      </div>
+
+      <div class="d-card">
+        <div class="d-card-header">
+          <div class="d-card-label">Patient Details</div>
+          <h3 id="detailPatientName">Name</h3>
+        </div>
+        <div class="d-card-body">
+          <div class="detail-grid">
+            <div class="d-item">
+              <div class="d-item-label">Date</div>
+              <div class="d-item-value" id="detailDate">--</div>
+            </div>
+            <div class="d-item">
+              <div class="d-item-label">Time</div>
+              <div class="d-item-value" id="detailTime">--</div>
+            </div>
+          </div>
+
+          <div class="d-row">
+            <div class="d-row-label">Reason for visit</div>
+            <div class="d-row-value"><span class="type-pill" id="detailReason">--</span></div>
+          </div>
+
+          <div class="note-box" id="detailNotes" style="margin-top: 15px;">
+            No additional notes provided by the patient.
+          </div>
+        </div>
+      </div>
+
+      <div class="d-actions" id="actionButtons">
+        <button class="d-btn d-btn-danger" onclick="updateStatus('Cancelled')">Decline / Cancel</button>
+        <button class="d-btn" onclick="promptReschedule()">Reschedule</button>
+        <button class="d-btn d-btn-primary" onclick="updateStatus('Scheduled')" style="grid-column: span 2;">Accept Appointment</button>
+      </div>
+
+      <div class="d-actions-full" id="secondaryActionButtons" style="display:none;">
+        <button class="d-btn d-btn-primary" onclick="updateStatus('Completed')">Mark as Completed</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Appointments data injected from Symfony controller
+    const appointments = {{ appointmentsJson|raw }};
+    let currentAppointmentId = null;
+
+    // ── UI View Switching ──
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+    }
+
+    function goBack() {
+      showPage('listPage');
+    }
+
+    // ── Filtering ──
+    function filterAppointments(status) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const cards = document.querySelectorAll('.appt-card');
+      cards.forEach(card => {
+        if (status === 'all' || card.dataset.status === status) {
+          card.style.display = 'grid';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // ── Detail View ──
+    function viewDetails(id) {
+      currentAppointmentId = id;
+      const appt = appointments.find(a => a.id == id);
+      if (!appt) return;
+
+      document.getElementById('detailPatientName').innerText = appt.patient_name;
+      document.getElementById('detailDate').innerText = new Date(appt.appointment_date).toLocaleDateString();
+      document.getElementById('detailTime').innerText = appt.appointment_time.substring(0, 5);
+      document.getElementById('detailReason').innerText = appt.reason || 'General';
+      document.getElementById('detailNotes').innerText = appt.notes || 'No additional notes provided.';
+
+      const banner = document.getElementById('detailBanner');
+      const statusLabel = document.getElementById('detailStatusLabel');
+      const statusSub = document.getElementById('detailStatusSub');
+      const actionBtns = document.getElementById('actionButtons');
+      const secondaryBtns = document.getElementById('secondaryActionButtons');
+
+      statusLabel.innerText = 'Status: ' + appt.status;
+
+      if (appt.status === 'Pending') {
+        banner.style.background = 'var(--amber-50)';
+        banner.style.borderColor = 'var(--amber-200)';
+        statusLabel.style.color = 'var(--amber-600)';
+        statusSub.innerText = 'Awaiting your confirmation';
+        actionBtns.style.display = 'grid';
+        secondaryBtns.style.display = 'none';
+      } else if (appt.status === 'Scheduled') {
+        banner.style.background = 'var(--blue-brand-50)';
+        banner.style.borderColor = 'var(--blue-brand-100)';
+        statusLabel.style.color = 'var(--blue-brand-700)';
+        statusSub.innerText = 'Appointment is confirmed';
+        actionBtns.style.display = 'none';
+        secondaryBtns.style.display = 'block';
+      } else {
+        banner.style.background = 'var(--gray-100)';
+        banner.style.borderColor = 'var(--gray-200)';
+        statusLabel.style.color = 'var(--gray-600)';
+        statusSub.innerText = 'Appointment closed';
+        actionBtns.style.display = 'none';
+        secondaryBtns.style.display = 'none';
+      }
+
+      showPage('detailPage');
+    }
+
+    // ── API: Update Status ──
+    async function updateStatus(newStatus) {
+      if (!confirm(`Are you sure you want to mark this as ${newStatus}?`)) return;
+
+      try {
+        const response = await fetch(`/appointments/update-status/${currentAppointmentId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (error) {
+        alert('Network error occurred.');
+      }
+    }
+
+    // ── API: Reschedule ──
+    async function promptReschedule() {
+      const newDate = prompt("Enter new date (YYYY-MM-DD):");
+      if (!newDate) return;
+      const newTime = prompt("Enter new time (HH:MM):");
+      if (!newTime) return;
+
+      try {
+        const response = await fetch(`/appointments/reschedule/${currentAppointmentId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            new_date: newDate,
+            new_time: newTime + ':00'
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (error) {
+        alert('Network error occurred.');
+      }
+    }
+  </script>
+</body>
+
+</html>
