@@ -32,6 +32,25 @@ class DoctorRepository extends ServiceEntityRepository implements PasswordUpgrad
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
     }
+    public function searchQuery(string $name, string $location, string $specialization)
+    {
+        $qb = $this->createQueryBuilder('d');
+
+        if ($name !== '') {
+            $qb->andWhere('d.name LIKE :name OR d.specialization LIKE :name')
+            ->setParameter('name', '%' . $name . '%');
+        }
+        if ($location !== '') {
+            $qb->andWhere('d.office_place LIKE :loc')
+            ->setParameter('loc', '%' . $location . '%');
+        }
+        if ($specialization !== '') {
+            $qb->andWhere('d.specialization = :spec')
+            ->setParameter('spec', $specialization);
+        }
+
+        return $qb->orderBy('d.name', 'ASC');
+    }
 
     //    /**
     //     * @return Doctor[] Returns an array of Doctor objects

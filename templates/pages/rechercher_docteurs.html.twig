@@ -1,188 +1,161 @@
-<?php
-session_start();
+{% extends 'base.html.twig' %}
 
-if (empty($_SESSION['user_id'])) {
-  header('Location: ../login_signup/login-register.php?force_login=1');
-  exit;
-}
-try{
-    require_once '../backend/autoloader.php';
-    $repo = new Repository_database();
+{% block stylesheets %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ asset('css/style.css') }}">
+<link rel="stylesheet" href="{{ asset('css/rechercher_docteurs.css') }}">
+{% endblock %}
 
-    // On récupère les données filtrées
-    $name = $_GET['name'] ?? '';
-    $location = $_GET['location'] ?? '';
-    $specialization = $_GET['specialization'] ?? '';
+{% block body %}
+<header class="navbar">
+  <div class="logo">Health <span>Connect</span></div>
+  <nav class="nav-links">
+    <a href="{{ path('home') }}#services">Services</a>
+    <a href="{{ path('home') }}#howitworks">How It Works</a>
+    <a href="{{ path('home') }}#doctors">Our Doctors</a>
+    <a href="{{ path('home') }}#about">About</a>
+  </nav>
+  <div class="nav-actions">
+    <a href="{{ path('login') }}" class="signin">Sign In</a>
+    <a href="{{ path('dashboard') }}" class="btn">Dashboard</a>
+    <a href="{{ path('appointments_book') }}" class="btn">Book Appointment</a>
+  </div>
+</header>
 
-    $doctors = $repo->FilterDoctorsByname_location_specialization($name, $location, $specialization);
+<section class="doctors-page">
+  <div class="page-header">
+    <h2>Meet Our Specialists</h2>
+    <p>Browse our doctors and book your consultation in minutes.</p>
+  </div>
 
-    // Récupérer toutes les spécialités et régions pour les filtres
-    $all_doctors = $repo->getAllDoctors();
-    $specializations = [];
-    $locations = [];
+  <div class="doctors-container">
+    <aside class="filters-sidebar">
+      <form method="GET" class="filters-card">
+        <h5>Filter Doctors</h5>
 
-    foreach ($all_doctors as $doc) {
-        if (!in_array($doc['specialization'], $specializations)) {
-            $specializations[] = $doc['specialization'];
-        }
-        if (!in_array($doc['office_place'] ?? $doc['location'] ?? '', $locations) && !empty($doc['office_place'] ?? $doc['location'] ?? '')) {
-            $locations[] = $doc['office_place'] ?? $doc['location'] ?? '';
-        }
-    }
-
-    sort($specializations);
-    sort($locations);
-
-} catch (Exception $e) {
-    $doctors = [];
-    $specializations = [];
-    $locations = [];
-    $error_db = $e->getMessage();
-}
-
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>TeleMed | Online Healthcare</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <link rel="stylesheet" href="{{ asset('css/rechercher_docteurs.css') }}" />
-    <script src="{{ asset('js/rechercher_docteurs.js') }}" defer></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-
-<body>
-    <div class="body">
-        <header class="navbar">
-            <div class="logo">Health <span>Connect</span></div>
-            <nav class="nav-links">
-                <a href="../homepage/connected.php">Home</a>
-            </nav>
-            <div class="nav-actions">
-                <a href="../login_signup/logout.php" class="signin text-danger fw-bold">Logout</a>
-                <a href="../book/book.php" class="btn">Book Appointment</a>
-            </div>
-        </header>
-<section class="our-doctors" id="doctors">
-        <div style="text-align: center; margin-bottom: 60px">
-          <h2 style="color: #0a6cff; font-size: 42px; font-weight: 800; margin-bottom: 15px; letter-spacing: -1.5px;">
-            Find Your Specialist
-          </h2>
-          <div style="width: 50px; height: 4px; background: #0a6cff; margin: 0 auto 20px; border-radius: 2px;"></div>
-          <p style="color: #64748b; font-size: 19px; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-            Search through our network of board-certified medical professionals and book your appointment in seconds.
-          </p>
+        <div class="filter-group">
+          <label for="name-filter">Doctor Name</label>
+          <input
+            id="name-filter"
+            type="text"
+            name="name"
+            value="{{ name }}"
+            placeholder="Search by name..."
+            class="doctors-input"
+          />
         </div>
 
-        <!-- Search Bar -->
-        <div class="search-section">
-          <form method="GET" class="search-form">
-            <input type="text" name="name" class="search-input" placeholder="Search by name, specialty, or location..." value="<?php echo htmlspecialchars($name); ?>">
-            <button type="submit" class="search-btn">Search</button>
-          </form>
+        <div class="filter-group">
+          <label for="spec-filter">Specialty</label>
+          <select id="spec-filter" name="specialization" class="doctors-select">
+            <option value="">All Specialties</option>
+            {% for spec in specializations %}
+              <option value="{{ spec }}" {{ spec == specialization ? 'selected' : '' }}>{{ spec }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <!-- Filters and Cards Container -->
-        <div class="doctors-container">
-          <!-- Sidebar Filters -->
-          <aside class="filters-sidebar">
-            <div class="filter-card">
-              <h5>Filters</h5>
+        <div class="filter-group">
+          <label for="loc-filter">Location</label>
+          <select id="loc-filter" name="location" class="doctors-select">
+            <option value="">All Locations</option>
+            {% for loc in locations %}
+              <option value="{{ loc }}" {{ loc == location ? 'selected' : '' }}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
-              <div class="filter-group">
-                <label for="spec-filter">Specialty</label>
-                <select id="spec-filter" name="specialization" class="filter-select">
-                  <option value="">All Specialties</option>
-                  <?php foreach ($specializations as $spec): ?>
-                    <option value="<?php echo htmlspecialchars($spec); ?>" <?php echo ($specialization === $spec) ? 'selected' : ''; ?>>
-                      <?php echo htmlspecialchars($spec); ?>
-                    </option>
-                  <?php endforeach; ?>
-                </select>
+        <button type="submit" class="doctors-btn doctors-btn-primary">Apply Filters</button>
+      </form>
+    </aside>
+
+    <div class="doctors-grid">
+      {% if doctors is empty %}
+        <div class="empty-state">
+          <p>No doctors found. Try adjusting your filters.</p>
+        </div>
+      {% else %}
+        {% for doc in doctors %}
+          <div class="doctors-card doctors-hover">
+            <img
+              src="{{ doc.imagePath ? asset('uploads/' ~ doc.imagePath) : 'https://placehold.co/400x300' }}"
+              class="doctors-img"
+              alt="Dr {{ doc.name }}"
+            />
+
+            <div style="padding: 1rem">
+              <h5 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 1.25rem">{{ doc.name }}</h5>
+              <p style="color: #0d6efd; font-size: 0.875em; margin-bottom: 0.5rem">{{ doc.specialization }}</p>
+              <p style="color: #6c757d; font-size: 0.875em; margin-bottom: 1rem">
+                {{ doc.about ?: 'Experienced specialist ready to help.' }}
+              </p>
+
+              <div class="doctors-info-box">
+                <span>Exp: <b>{{ doc.experience }}</b></span>
+                <span>Location: <b>{{ doc.officePlace }}</b></span>
               </div>
-
-              <div class="filter-group">
-                <label for="loc-filter">Location</label>
-                <select id="loc-filter" name="location" class="filter-select">
-                  <option value="">All Locations</option>
-                  <?php foreach ($locations as $loc): ?>
-                    <option value="<?php echo htmlspecialchars($loc); ?>" <?php echo ($location === $loc) ? 'selected' : ''; ?>>
-                      <?php echo htmlspecialchars($loc); ?>
-                    </option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-
-              <button onclick="applyFilters()" class="apply-btn">Apply Filters</button>
             </div>
-          </aside>
 
-          <!-- Doctors Grid -->
-          <div class="doctors-grid">
-        <?php if (empty($doctors)): ?>
-            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-              <p>No doctors found. Try adjusting your filters.</p>
+            <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
+              <a href="{{ path('appointments_book') }}" class="doctors-btn doctors-btn-primary" style="margin-bottom: 0.5rem">Book Now</a>
+              <a href="{{ path('doctors_view_profile', { id: doc.id }) }}" class="doctors-btn doctors-btn-outline">View Profile</a>
             </div>
-        <?php else: ?>
-            <?php foreach ($doctors as $doc): ?>
-              <?php
-                $docImagePath = !empty($doc['photo']) ? '../view profile/' . $doc['photo'] : 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
-              ?>
-              <div class="doctor-card">
-                  <div class="doctor-img-container">
-                    <img src="<?= $docImagePath ?>" alt="Dr <?= htmlspecialchars($doc['name']) ?>" class="doctor-img">
-                    <div class="doctor-badge">Next: Today</div>
-                  </div>
-                  <div class="doctor-content">
-                    <h3><?= (strpos($doc['name'], 'Dr.') === 0) ? htmlspecialchars($doc['name']) : 'Dr. ' . htmlspecialchars($doc['name']) ?></h3>
-                    <p class="specialty"><?= htmlspecialchars($doc['specialization']) ?></p>
-                    <div class="rating">★ <?= htmlspecialchars($doc['rating']) ?> (<?= htmlspecialchars($doc['review_count']) ?> reviews)</div>
-                    <p class="bio"><?= htmlspecialchars($doc['bio'] ?: 'Board-certified ' . $doc['specialization'] . ' with extensive experience in clinical practice.') ?></p>
-
-                    <div class="info-box">
-                        <span>Fee: <b><?= htmlspecialchars($doc['fee']) ?></b></span>
-                        <span>Exp: <b><?= htmlspecialchars($doc['experience'] ?: '5+ Years') ?></b></span>
-                        <span>Location: <b><?= htmlspecialchars($doc['office_place'] ?: 'In-Clinic') ?></b></span>
-                    </div>
-
-                    <div class="card-actions">
-                        <a href="../book/book.php?id=<?= $doc['id'] ?>" class="btn btn-primary">Book Now</a>
-                        <a href="../view profile/view-profile.php?id=<?= $doc['id'] ?>" class="btn btn-outline">Profile</a>
-                    </div>
-                  </div>
-              </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
           </div>
-        </div>
-    </section>
-
-    <footer>
-      <p>&copy; 2026 HealthConnect. All rights reserved.</p>
-    </footer>
+        {% endfor %}
+      {% endif %}
     </div>
+  </div>
 
-    <script>
-      function applyFilters() {
-        const specialization = document.getElementById('spec-filter').value;
-        const location = document.getElementById('loc-filter').value;
-        const name = document.querySelector('.search-input').value;
+  {% if pages > 1 %}
+    <nav class="pagination-wrapper">
+      <ul class="pagination">
+        <li class="page-item {{ page == 1 ? 'disabled' : '' }}">
+          <a class="page-link"
+            href="{{ path('doctors_search', {
+              page: page - 1,
+              specialization: specialization,
+              location: location,
+              name: name
+            }) }}">
+            Previous
+          </a>
+        </li>
 
-        const params = new URLSearchParams();
-        if (name) params.append('name', name);
-        if (location) params.append('location', location);
-        if (specialization) params.append('specialization', specialization);
+        {% for p in 1..pages %}
+          <li class="page-item {{ p == page ? 'active' : '' }}">
+            <a class="page-link"
+              href="{{ path('doctors_search', {
+                page: p,
+                specialization: specialization,
+                location: location,
+                name: name
+              }) }}">
+              {{ p }}
+            </a>
+          </li>
+        {% endfor %}
 
-        window.location.href = '?' + params.toString();
-      }
-    </script>
-</body>
-</html>
+        <li class="page-item {{ page == pages ? 'disabled' : '' }}">
+          <a class="page-link"
+            href="{{ path('doctors_search', {
+              page: page + 1,
+              specialization: specialization,
+              location: location,
+              name: name
+            }) }}">
+            Next
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="pagination-meta">
+      Page {{ page }} of {{ pages }}
+    </div>
+  {% endif %}
+</section>
+
+<footer>
+  <p>© 2026 HealthConnect. All rights reserved.</p>
+</footer>
+{% endblock %}

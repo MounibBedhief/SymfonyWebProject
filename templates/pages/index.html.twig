@@ -15,6 +15,7 @@ session_start();
     />
     <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
     <script src="{{ asset('js/index.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/rechercher_docteurs.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
 
@@ -450,279 +451,53 @@ session_start();
       </section>
 
       <!-- souhayl -->
-      <section class="our-doctors" id="doctors">
-        <div style="text-align: center; margin-bottom: 40px">
-          <h2 style="color: #0a6cff; font-size: 32px; margin-bottom: 10px">
-            Meet Our Specialists
-          </h2>
-          <p style="color: #666; font-size: 18px">
-            Connect with experienced doctors from the comfort of your home.
-          </p>
-        </div>
+      <section class="doctors-page" id="doctors">
+  <div class="page-header">
+    <h2>Meet Our Specialists</h2>
+    <p>Connect with experienced doctors from the comfort of your home.</p>
+  </div>
 
-        <div class="doctors-container">
-          <div class="doctors-sidebar">
-            <div class="doctors-card">
-              <h5
-                style="
-                  margin-bottom: 20px;
-                  font-size: 1.25rem;
-                  font-weight: bold;
-                "
-              >
-                Filter Doctors
-              </h5>
-
-              <div style="margin-bottom: 1rem">
-                <label>Search</label>
-                <input
-                  type="text"
-                  class="doctors-input"
-                  placeholder="Doctor name..."
-                />
-              </div>
-
-              <div style="margin-bottom: 1rem">
-                <label>Specialty</label>
-                <select class="doctors-select">
-                  <option>All Specialties</option>
-                  <option>Cardiology</option>
-                  <option>Dermatology</option>
-                </select>
-              </div>
-
-              <div style="margin-bottom: 1rem">
-                <label>Availability</label>
-                <div>
-                  <input type="checkbox" id="check1" />
-                  <label
-                    for="check1"
-                    style="display: inline; font-weight: normal"
-                  >
-                    Available Today
-                  </label>
-                </div>
-              </div>
-
-              <button
-                class="doctors-btn doctors-btn-primary"
-                style="width: 100%"
-              >
-                Apply Filters
-              </button>
+  <div class="doctors-container">
+    <div class="doctors-grid">
+      {% for doctor in doctors %}
+        <div class="doctors-card doctors-hover">
+          <img
+            src="{{ doctor.imagePath ? asset(doctor.imagePath) : 'https://placehold.co/400x300' }}"
+            class="doctors-img"
+            alt="{{ doctor.name }}"
+          />
+          <div style="padding: 1rem">
+            <h5 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 1.25rem">{{ doctor.name }}</h5>
+            <p style="color: #0d6efd; font-size: 0.875em; margin-bottom: 0.5rem">
+              {{ doctor.specialization }}
+            </p>
+            <p style="color: #6c757d; font-size: 0.875em; margin-bottom: 1rem">
+              {{ doctor.about ?: 'Experienced doctor available for consultation.' }}
+            </p>
+            <div class="doctors-info-box">
+              <span>Exp: <b>{{ doctor.experience }}</b></span>
+              <span>Location: <b>{{ doctor.officePlace }}</b></span>
             </div>
           </div>
-
-          <div class="doctors-grid">
-            <div class="doctors-card doctors-hover">
-              <img
-                src="https://placehold.co/400x300"
-                class="doctors-img"
-                alt="Doctor"
-              />
-              <div style="padding: 1rem">
-                <h5
-                  style="
-                    margin-bottom: 0.5rem;
-                    font-weight: bold;
-                    font-size: 1.25rem;
-                  "
-                >
-                  Dr. Sarah Smith
-                </h5>
-                <p
-                  style="
-                    color: #0d6efd;
-                    font-size: 0.875em;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  Cardiologist
-                </p>
-                <div
-                  style="
-                    color: #ffc107;
-                    font-size: 0.875em;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  ★ 4.9 (120 reviews)
-                </div>
-                <p
-                  style="
-                    color: #6c757d;
-                    font-size: 0.875em;
-                    margin-bottom: 1rem;
-                  "
-                >
-                  15+ years experience. Expert in heart health.
-                </p>
-
-                <div class="doctors-info-box">
-                  <span>
-                    Next:
-                    <b>Today, 2PM</b>
-                  </span>
-                  <span>
-                    Fee:
-                    <b>$75</b>
-                  </span>
-                </div>
-              </div>
-              <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
-                <a
-                  href="../book/book.php"
-                  class="doctors-btn doctors-btn-primary"
-                  style="margin-bottom: 0.5rem"
-                >
-                  Book Now
-                </a>
-                <a href="../view profile/view-profile.php?id=1" class="doctors-btn doctors-btn-outline"
-                  >View Profile</a
-                >
-              </div>
-            </div>
-
-            <div class="doctors-card doctors-hover">
-              <img
-                src="https://placehold.co/400x300"
-                class="doctors-img"
-                alt="Doctor"
-              />
-              <div style="padding: 1rem">
-                <h5
-                  style="
-                    margin-bottom: 0.5rem;
-                    font-weight: bold;
-                    font-size: 1.25rem;
-                  "
-                >
-                  Dr. James Wilson
-                </h5>
-                <p
-                  style="
-                    color: #0d6efd;
-                    font-size: 0.875em;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  Dermatologist
-                </p>
-                <div
-                  style="
-                    color: #ffc107;
-                    font-size: 0.875em;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  ★ 4.8 (85 reviews)
-                </div>
-                <p
-                  style="
-                    color: #6c757d;
-                    font-size: 0.875em;
-                    margin-bottom: 1rem;
-                  "
-                >
-                  Specialist in skincare and acne treatment.
-                </p>
-
-                <div class="doctors-info-box">
-                  <span>
-                    Next:
-                    <b>Tomorrow</b>
-                  </span>
-                  <span>
-                    Fee:
-                    <b>$60</b>
-                  </span>
-                </div>
-              </div>
-              <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
-                <a
-                  href="../book/book.php"
-                  class="doctors-btn doctors-btn-primary"
-                  style="margin-bottom: 0.5rem"
-                >
-                  Book Now
-                </a>
-                <a href="../view profile/view-profile.php?id=2" class="doctors-btn doctors-btn-outline"
-                  >View Profile</a
-                >
-              </div>
-            </div>
-
-            <div class="doctors-card doctors-hover">
-              <img
-                src="https://placehold.co/400x300"
-                class="doctors-img"
-                alt="Doctor"
-              />
-              <div style="padding: 1rem">
-                <h5
-                  style="
-                    margin-bottom: 0.5rem;
-                    font-weight: bold;
-                    font-size: 1.25rem;
-                  "
-                >
-                  Dr. Emily Rose
-                </h5>
-                <p
-                  style="
-                    color: #0d6efd;
-                    font-size: 0.875em;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  Pediatrician
-                </p>
-                <div
-                  style="
-                    color: #ffc107;
-                    font-size: 0.875em;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  ★ 5.0 (200 reviews)
-                </div>
-                <p
-                  style="
-                    color: #6c757d;
-                    font-size: 0.875em;
-                    margin-bottom: 1rem;
-                  "
-                >
-                  Compassionate care for children of all ages.
-                </p>
-
-                <div class="doctors-info-box">
-                  <span>
-                    Next:
-                    <b>Today, 4PM</b>
-                  </span>
-                  <span>
-                    Fee:
-                    <b>$90</b>
-                  </span>
-                </div>
-              </div>
-              <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
-                <a
-                  href="../book/book.php"
-                  class="doctors-btn doctors-btn-primary"
-                  style="margin-bottom: 0.5rem"
-                >
-                  Book Now
-                </a>
-                <a href="../view profile/view-profile.php?id=3" class="doctors-btn doctors-btn-outline"
-                  >View Profile</a
-                >
-              </div>
-            </div>
+          <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
+            <a href="{{ path('appointments_book') }}" class="doctors-btn doctors-btn-primary" style="margin-bottom: 0.5rem">
+              Book Now
+            </a>
+            <a href="{{ path('doctors_view_profile', { id: doctor.id }) }}" class="doctors-btn doctors-btn-outline">
+              View Profile
+            </a>
           </div>
         </div>
-      </section>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:30px;">
+    <a href="{{ path('doctors_search') }}" class="doctors-btn doctors-btn-primary" style="max-width:280px; margin:0 auto;">
+      Browse All Doctors
+    </a>
+  </div>
+</section>
 
       <!-- mounib -->
       <section class="about" id="about">
