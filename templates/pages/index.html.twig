@@ -462,7 +462,7 @@ session_start();
       {% for doctor in doctors %}
         <div class="doctors-card doctors-hover">
           <img
-            src="{{ doctor.imagePath ? asset(doctor.imagePath) : 'https://placehold.co/400x300' }}"
+            src="{{ doctor.imagePath ? asset(doctor.imagePath) : asset('images/default_doctor.svg') }}"
             class="doctors-img"
             alt="{{ doctor.name }}"
           />

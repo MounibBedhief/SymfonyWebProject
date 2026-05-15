@@ -7,6 +7,7 @@ body {
   padding: 80px 40px;
   max-width: 1300px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 .page-header {
@@ -26,11 +27,12 @@ body {
   color: #666;
 }
 
-/* Layout grid */
-.doctors-container {
+/* Layout grid - only for the search page (homepage has id="doctors") */
+.doctors-page:not(#doctors) .doctors-container {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 40px;
+  grid-template-columns: 280px 1fr;
+  gap: 30px;
+  overflow: hidden;
 }
 
 /* Filters */
@@ -42,6 +44,7 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 100px;
+  align-self: start;
 }
 
 .filters-card h5 {
@@ -61,33 +64,55 @@ body {
   display: block;
 }
 
-/* Doctor grid */
-.doctors-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+/* Doctor grid - horizontal scroll */
+.doctors-page .doctors-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
   gap: 24px;
+  min-width: 0;
+  padding: 10px 0 20px 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.doctors-page .doctors-grid::-webkit-scrollbar {
+  height: 6px;
+}
+.doctors-page .doctors-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+.doctors-page .doctors-grid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.doctors-page .doctors-grid::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .empty-state {
-  grid-column: 1 / -1;
+  flex: 1;
   text-align: center;
   padding: 40px;
   color: #666;
 }
 
 @media (max-width: 1000px) {
-  .doctors-container {
+  .doctors-page .doctors-container {
     grid-template-columns: 1fr;
   }
   .filters-card {
     position: static;
   }
 }
+
 body,
-.doctors-page,
-.doctors-container {
+.doctors-page {
   background: #f4f9ff !important;
 }
+
 .pagination-wrapper {
   display: flex;
   justify-content: center;

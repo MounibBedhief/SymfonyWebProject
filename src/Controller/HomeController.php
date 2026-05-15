@@ -37,8 +37,11 @@ class HomeController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'dashboard')]
-    public function dashboard(): Response
+    public function dashboard(DoctorRepository $repo): Response
     {
-        return $this->render('pages/connected.html.twig');
+        $doctors = $repo->findBy([], ['name' => 'ASC'], 3);
+        return $this->render('pages/connected.html.twig', [
+            'doctorsList' => $doctors,
+        ]);
     }
 }

@@ -78,7 +78,7 @@
         {% for doc in doctors %}
           <div class="doctors-card doctors-hover">
             <img
-              src="{{ doc.imagePath ? asset('uploads/' ~ doc.imagePath) : 'https://placehold.co/400x300' }}"
+              src="{{ doc.imagePath ? asset('uploads/' ~ doc.imagePath) : asset('images/default_doctor.svg') }}"
               class="doctors-img"
               alt="Dr {{ doc.name }}"
             />
