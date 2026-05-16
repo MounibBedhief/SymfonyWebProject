@@ -23,7 +23,7 @@ class HomeController extends AbstractController
     public function logout(Request $request): Response
     {
         $request->getSession()->invalidate();
-        return $this->redirectToRoute('dashboard');
+        return $this->redirectToRoute('home');
     }
 
     #[Route('/dashboard', name: 'dashboard')]
