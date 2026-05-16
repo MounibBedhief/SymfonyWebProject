@@ -16,12 +16,22 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    #[Route('/login', name: 'login')]
+    // ✅ CORRECTION : On accepte explicitement GET et POST pour que le form_login fonctionne avec check_path: login
+    #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
+        // Si l'utilisateur est déjà connecté, on évite qu'il revienne sur le login
+        if ($this->getUser()) {
+            return $this->redirectToRoute('home');
+        }
+
+        // Récupération de l'erreur de connexion
+        $error = $authenticationUtils->getLastAuthenticationError();
+
         return $this->render('pages/login-register.html.twig', [
             'last_username'    => $authenticationUtils->getLastUsername(),
-            'error'            => $authenticationUtils->getLastAuthenticationError(),
+            // ✅ CORRECTION : On envoie un simple booléen à Twig pour éviter les conflits d'objets avec le pare-feu
+            'has_error'        => $error !== null,
             'registerForm'     => $this->createForm(RegistrationFormType::class)->createView(),
             'showRegisterForm' => false,
         ]);
@@ -47,7 +57,7 @@ class SecurityController extends AbstractController
             );
             $user->setCreatedAt(new DateTimeImmutable());
 
-            // Doctor-specific defaults
+            // Valeurs par défaut pour le docteur
             if ($user instanceof Doctor) {
                 $user->setPhone('TBD');
                 $user->setSpecialization('General');
@@ -56,6 +66,8 @@ class SecurityController extends AbstractController
                 $user->setExperience(0);
                 $user->setHospital('TBD');
                 $user->setOfficePlace('TBD');
+            } else {
+                $user->setRoles(["ROLE_PATIENT"]);
             }
 
             $em->persist($user);
@@ -67,6 +79,7 @@ class SecurityController extends AbstractController
 
         return $this->render('pages/login-register.html.twig', [
             'last_username'    => '',
+            'has_error'        => false,
             'registerForm'     => $form->createView(),
             'showRegisterForm' => true,
         ]);
