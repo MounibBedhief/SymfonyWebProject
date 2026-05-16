@@ -29,6 +29,7 @@ class AppointmentController extends AbstractController
      * TODO: Replace hardcoded patient ID with $this->getUser() once Security bundle is done.
      */
     #[Route('/patient/book', name: 'appointments_book', methods: ['GET', 'POST'])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_PATIENT')]
     public function book(Request $request): Response
     {
         $doctors = $this->doctorRepo->findAll();
@@ -49,7 +50,7 @@ class AppointmentController extends AbstractController
             $doctor  = $this->doctorRepo->find($doctorId);
 
             // TODO: Hardcoded patient ID = 1 until Security bundle is ready
-            $patient = $this->patientRepo->findOneBy([]);
+            $patient = $this->getUser();
 
             if (!$doctor || !$patient) {
                 $this->addFlash('danger', 'Doctor or patient not found.');

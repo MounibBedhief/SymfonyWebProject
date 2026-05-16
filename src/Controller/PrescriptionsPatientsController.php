@@ -11,6 +11,7 @@ use App\Repository\PatientRepository;
 final class PrescriptionsPatientsController extends AbstractController
 {
     #[Route('/patient/prescriptions', name: 'app_prescriptions_patients')]
+    #[IsGranted('ROLE_PATIENT')]
     public function history(AppointmentRepository $repository,PatientRepository $patient): Response
     {
 

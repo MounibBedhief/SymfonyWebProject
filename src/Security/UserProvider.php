@@ -24,7 +24,19 @@ class UserProvider implements UserProviderInterface
 
     public function refreshUser(UserInterface $user): UserInterface
     {
-        return $this->loadUserByIdentifier($user->getUserIdentifier());
+        // Si l'utilisateur en session est un Docteur, on va DIRECTEMENT dans la table doctor
+        if ($user instanceof \App\Entity\Doctor) {
+            return $this->doctors->find($user->getId())
+                ?? throw new UserNotFoundException();
+        }
+
+        // Si c'est un Patient, on va DIRECTEMENT dans la table patient (sans passer par les docteurs !)
+        if ($user instanceof \App\Entity\Patient) {
+            return $this->patients->find($user->getId())
+                ?? throw new UserNotFoundException();
+        }
+
+        throw new \Symfony\Component\Security\Core\Exception\UnsupportedUserException();
     }
 
     public function supportsClass(string $class): bool
