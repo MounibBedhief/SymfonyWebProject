@@ -23,6 +23,6 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
             );
         }
 
-        return new RedirectResponse($this->router->generate('patient_dashboard'));
+        return new RedirectResponse($this->router->generate('dashboard'));
     }
 }

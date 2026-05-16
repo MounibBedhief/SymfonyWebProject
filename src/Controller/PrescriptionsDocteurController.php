@@ -26,7 +26,7 @@ class PrescriptionsDocteurController extends AbstractController
     ): Response {
 
         // --- MODE TEST : On récupère un docteur pour l'affichage initial ---
-        $doctor = $doctorRepo->findOneBy([]) ?? $doctorRepo->findAll()[0];
+        $doctor = $this->getUser();
 
         if (!$doctor) {
             return new Response("Aucun docteur trouvé en BDD. Ajoute s'en un pour les tests !");

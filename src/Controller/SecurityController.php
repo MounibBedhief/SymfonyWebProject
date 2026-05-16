@@ -45,13 +45,14 @@ class SecurityController extends AbstractController
             $user->setPassword(
                 $hasher->hashPassword($user, $form->get('plainPassword')->getData())
             );
+            $user->setCreatedAt(new DateTimeImmutable());
 
             // Doctor-specific defaults
             if ($user instanceof Doctor) {
                 $user->setPhone('TBD');
                 $user->setSpecialization('General');
                 $user->setLicenseNumber('Lic-' . bin2hex(random_bytes(4)));
-                $user->setRoles(["role"]);
+                $user->setRoles(["ROLE_DOCTOR"]);
                 $user->setExperience(0);
                 $user->setHospital('TBD');
                 $user->setOfficePlace('TBD');

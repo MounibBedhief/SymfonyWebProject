@@ -40,6 +40,7 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->appointments = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     // --- MÉTHODES OBLIGATOIRES POUR LA SÉCURITÉ ---
@@ -60,18 +61,14 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return ['ROLE_USER'];
     }
-
-    /**
-     * Obligatoire pour l'interface, permet de nettoyer des données sensibles
-     * temporaires si nécessaire.
-     */
-    public function eraseCredentials(): void
+    public function SetRoles(): array
     {
-        // Laisser vide
+        // On hardcode le rôle : n'importe quel Patient aura automatiquement ce rôle pour Symfony
+        return ['ROLE_PATIENT'];
     }
 
-    // --- TES GETTERS ET SETTERS EXISTANTS ---
-
+    /**
+     */
     public function getId(): ?int
     {
         return $this->id;

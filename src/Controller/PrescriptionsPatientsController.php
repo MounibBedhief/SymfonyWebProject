@@ -14,8 +14,8 @@ final class PrescriptionsPatientsController extends AbstractController
     public function history(AppointmentRepository $repository,PatientRepository $patient): Response
     {
 
-        $testpatient=$patient->findOneBy([]);
-        $appointments = $repository->findAppointmentsForPatient($testpatient->getId());
+        $testpatient=$this->getUser();
+        $appointments = $repository->findAppointmentsForPatient($this->getUser()->getId());
         return $this->render('prescriptions_patients/patient.html.twig', [
             'appointments' => $appointments,
             'patient' => $testpatient,

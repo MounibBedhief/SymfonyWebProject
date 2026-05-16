@@ -10,74 +10,91 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
 </head>
 <body>
-    <header>
-        <h2 class="logo">Health<span>Connect</span></h2>
-        <nav class="navigation">
-            <a href="{{ path('home') }}" class="btn-home">Home</a>
-        </nav>
-    </header>
+<header>
+    <h2 class="logo">Health<span>Connect</span></h2>
+    <nav class="navigation">
+        <a href="{{ path('home') }}" class="btn-home">Home</a>
+    </nav>
+</header>
 
-    <div class="wrapper">
-        {# Error/Success Messages #}
-        {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
+<div class="wrapper {{ showRegisterForm ? 'active' : '' }}">
 
-        <div class="form-box-login" style="display: {{ showRegisterForm ? 'none' : 'block' }}">
-            <h2>Welcome Back</h2>
-            <form action="{{ path('login') }}" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token('auth_token') }}">
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
 
-                <div class="input-box">
-                    <input type="email" name="email" required />
-                    <label>Email Address</label>
-                </div>
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
 
-                <div class="input-box">
-                    <input type="password" name="password" required />
-                    <label>Password</label>
-                </div>
+    <div class="form-box-login">
+        <h2>Welcome Back</h2>
+        <form action="{{ path('login') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token('auth_token') }}">
 
-                <button type="submit" name="login_submit" class="btn-main">Login</button>
-                <div class="login-register">
-                    <p>Don't have an account? <a href="#" class="register_link">Register here</a></p>
-                </div>
-            </form>
-        </div>
+            <div class="input-box">
+                <input type="email" name="email" required />
+                <label>Email Address</label>
+            </div>
 
-        <div class="form-box-register" style="display: {{ showRegisterForm ? 'block' : 'none' }}">
-            <h2>Create Account</h2>
-            <form action="{{ path('login') }}" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token('auth_token') }}">
+            <div class="input-box">
+                <input type="password" name="password" required />
+                <label>Password</label>
+            </div>
 
-                <div class="input-box">
-                    <input type="text" name="Rfull_name" required />
-                    <label>Full Name</label>
-                </div>
-
-                <div class="input-box">
-                    <input type="email" name="Remail" required />
-                    <label>Email Address</label>
-                </div>
-
-                <div class="input-box">
-                    <input type="password" name="Rpassword" required />
-                    <label>Password</label>
-                </div>
-
-                <div class="input-box select-box">
-                    <select class="form-select" name="Rrole" required>
-                        <option value="patient">Patient</option>
-                        <option value="doctor">Doctor</option>
-                    </select>
-                </div>
-
-                <button type="submit" name="register_submit" class="btn-main">Register</button>
-                <div class="login-register">
-                    <p>Already have an account? <a href="#" class="login_link">Login here</a></p>
-                </div>
-            </form>
-        </div>
+            <button type="submit" name="login_submit" class="btn-main">Login</button>
+            <div class="login-register">
+                <p>Don't have an account? <a href="#" class="register_link">Register here</a></p>
+            </div>
+        </form>
     </div>
+
+    <div class="form-box-register">
+        <h2>Create Account</h2>
+
+        {{ form_start(registerForm, {'action': path('register'), 'method': 'POST'}) }}
+
+        {{ form_errors(registerForm) }}
+
+        <div class="input-box">
+            {{ form_widget(registerForm.full_name, {'attr': {'required': 'required'}}) }}
+            <label>Full Name</label>
+            {{ form_errors(registerForm.full_name) }}
+        </div>
+
+        <div class="input-box">
+            {{ form_widget(registerForm.email, {'attr': {'required': 'required'}}) }}
+            <label>Email Address</label>
+            {{ form_errors(registerForm.email) }}
+        </div>
+
+        <div class="input-box">
+            {{ form_widget(registerForm.plainPassword.first, {'attr': {'required': 'required'}}) }}
+            <label>Password</label>
+            {{ form_errors(registerForm.plainPassword.first) }}
+        </div>
+
+        <div class="input-box">
+            {{ form_widget(registerForm.plainPassword.second, {'attr': {'required': 'required'}}) }}
+            <label>Confirm Password</label>
+            {{ form_errors(registerForm.plainPassword.second) }}
+        </div>
+
+        <div class="input-box select-box">
+            {{ form_widget(registerForm.role, {'attr': {'class': 'form-select', 'required': 'required'}}) }}
+            {{ form_errors(registerForm.role) }}
+        </div>
+
+        <button type="submit" class="btn-main">Register</button>
+
+        <div class="login-register">
+            <p>Already have an account? <a href="#" class="login_link">Login here</a></p>
+        </div>
+
+        {{ form_end(registerForm) }}
+    </div>
+</div>
+</body>
+</html>
 </body>
 </html>
