@@ -34,13 +34,10 @@
         </nav>
 
         <div class="nav-actions">
-          <a href="<?php echo !($is_doctor) ? '../acceptAppointment/index.php' : '../rechercher_docteurs/rechercher_docteurs.php'?>" class="btn">Find Doctors</a>
-          <a href="<?php echo $is_doctor ? '../acceptAppointment/index.php' : '../dashboard_client/patient.php'; ?>" class="btn">Dashboard</a>
-          <a href="../book/book.php" class="btn">Book Appointment</a>
-          <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
-            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>" />
-            <button type="submit" name="logout_submit" class="btn-logout">Logout</button>
-          </form>
+          <a href="{{ path('doctors_search') }}" class="btn">Find Doctors</a>
+          <a href="{{ path('app_prescriptions_patients') }}" class="btn">Dashboard</a>
+          <a href="{{ path('appointments_book') }}" class="btn">Book Appointment</a>
+          <a href="{{ path('logout') }}" class="btn-logout">Logout</a>
         </div>
       </header>
 
@@ -59,7 +56,7 @@
               anytime you need.
             </p>
             <div class="hero-buttons">
-              <a href="../book/book.php" class="btn-primary">
+              <a href="{{ path('appointments_book') }}" class="btn-primary">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -524,7 +521,7 @@
                 </div>
                 <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
                   <a
-                    href="../book/book.php"
+                    href="{{ path('appointments_book') }}"
                     class="doctors-btn doctors-btn-primary"
                     style="margin-bottom: 0.5rem"
                   >
@@ -560,7 +557,7 @@
             of healthcare.
           </p>
           <div class="cta-actions">
-            <a href="../book/book.php" class="btn book-btn">Book Your Appointment</a>
+            <a href="{{ path('appointments_book') }}" class="btn book-btn">Book Your Appointment</a>
             <a href="../rechercher_docteurs/rechercher_docteurs.php" class="btn explore-btn">Explore Doctors</a>
           </div>
 

@@ -38,7 +38,7 @@ session_start();
         </nav>
 
         <div class="nav-actions">
-          <a href="../login_signup/login-register.php?force_login=1" class="signin">Sign In</a>
+          <a href="{{ path('login') }}" class="signin">Sign In</a>
           <a href="{{ path('app_prescriptions_patients') }}" class="btn">Dashboard</a>
           <a href="{{ path('appointments_book') }}" class="btn">Book Appointment</a>
         </div>

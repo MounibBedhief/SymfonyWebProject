@@ -31,11 +31,12 @@ $docImagePath = !empty($doctor['image_path']) ? $doctor['image_path'] : 'https:/
     <header class="navbar">
       <div class="logo">Health <span>Connect</span></div>
       <nav class="navigation">
-        <a href="../homepage/connected.php">Home</a>
-        <a href="../rechercher_docteurs/rechercher_docteurs.php">Specialists</a>
+        <a href="{{ path('home') }}">Home</a>
+        <a href="{{ path('doctors_search') }}">Specialists</a>
+        <a href="{{ path('dashboard') }}">Dashboard</a>
       </nav>
       <div class="header-actions">
-        <a href="../book/book.php?id=<?= $doctor['id']; ?>" class="btn-top-book">Book Appointment</a>
+        <a href="{{ path('appointments_book', {doctor_id: doctorId}) }}" class="btn-top-book">Book Appointment</a>
       </div>
     </header>
 
@@ -81,7 +82,7 @@ $docImagePath = !empty($doctor['image_path']) ? $doctor['image_path'] : 'https:/
               </div>
 
               <div class="cta-section">
-                <a href="../book/book.php?id=<?= $doctor['id']; ?>" class="primary-btn">Book Appointment Now</a>
+                <a href="{{ path('appointments_book', {doctor_id: doctorId}) }}" class="primary-btn">Book Appointment Now</a>
               </div>
             </div>
           </div>
