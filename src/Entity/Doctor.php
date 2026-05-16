@@ -54,6 +54,9 @@ class Doctor implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $office_place = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $consultation_fee = null;
+
     #[ORM\Column(length: 1000, nullable: true)]
     private ?string $about = null;
 
@@ -229,6 +232,18 @@ class Doctor implements UserInterface, PasswordAuthenticatedUserInterface
     public function setOfficePlace(string $office_place): static
     {
         $this->office_place = $office_place;
+
+        return $this;
+    }
+
+    public function getConsultationFee(): ?string
+    {
+        return $this->consultation_fee;
+    }
+
+    public function setConsultationFee(?string $consultation_fee): static
+    {
+        $this->consultation_fee = $consultation_fee;
 
         return $this;
     }

@@ -2,12 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\Doctor;
 use App\Repository\DoctorRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/doctors')]
 class DoctorController extends AbstractController
@@ -44,18 +48,118 @@ class DoctorController extends AbstractController
     }
 
     #[Route('/{id}/profile', name: 'doctors_profile')]
-    public function profile(int $id): Response
+    public function profile(int $id, DoctorRepository $repo, EntityManagerInterface $em, Request $request, SluggerInterface $slugger): Response
     {
+        $doctor = $repo->find($id);
+        
+        if (!$doctor) {
+            throw $this->createNotFoundException('Doctor not found');
+        }
+
+        $successMsg = '';
+        $errorMsg = '';
+
+        // Handle form submission
+        if ($request->isMethod('POST')) {
+            $name = trim($request->request->get('name', ''));
+            $specialization = trim($request->request->get('specialization', ''));
+            $experience = trim($request->request->get('experience', ''));
+            $consultationFee = trim($request->request->get('consultation_fee', ''));
+            $hospital = trim($request->request->get('hospital', ''));
+            $phone = trim($request->request->get('phone', ''));
+            $email = trim($request->request->get('email', ''));
+            $about = trim($request->request->get('about', ''));
+            $officePlace = trim($request->request->get('office_place', ''));
+
+            // Handle image upload
+            /** @var UploadedFile $uploadedFile */
+            $uploadedFile = $request->files->get('profile_image');
+            if ($uploadedFile) {
+                $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = 'doctor_' . $id . '.' . $uploadedFile->guessExtension();
+
+                try {
+                    $uploadedFile->move(
+                        $this->getParameter('uploads_directory'),
+                        $newFilename
+                    );
+                    $doctor->setImagePath('uploads/' . $newFilename);
+                } catch (\Exception $e) {
+                    $errorMsg = 'Failed to upload image.';
+                }
+            }
+
+            // Update doctor properties
+            $doctor->setName($name);
+            $doctor->setSpecialization($specialization);
+            $doctor->setExperience($experience);
+            $doctor->setConsultationFee($consultationFee);
+            $doctor->setHospital($hospital);
+            $doctor->setPhone($phone);
+            $doctor->setEmail($email);
+            $doctor->setAbout($about);
+            $doctor->setOfficePlace($officePlace);
+
+            try {
+                $em->flush();
+                $successMsg = 'Profile updated successfully!';
+            } catch (\Exception $e) {
+                $errorMsg = 'Failed to update profile: ' . $e->getMessage();
+            }
+        }
+
         return $this->render('pages/doctor-profile.html.twig', [
-            'doctorId' => $id
+            'doctor' => $doctor,
+            'successMsg' => $successMsg,
+            'errorMsg' => $errorMsg,
         ]);
     }
 
     #[Route('/{id}/calendar', name: 'doctors_calendar')]
-    public function calendar(int $id): Response
+    public function calendar(int $id, DoctorRepository $repo, Request $request): Response
     {
+        $doctor = $repo->find($id);
+        
+        if (!$doctor) {
+            throw $this->createNotFoundException('Doctor not found');
+        }
+
+        // Fetch appointments for this doctor
+        $appointments = $doctor->getAppointments();
+        
+        // Format appointments for JS calendar
+        $dbEvents = [];
+        foreach ($appointments as $appointment) {
+            if ($appointment->getStatus() === 'Cancelled') {
+                continue;
+            }
+
+            $startTime = $appointment->getAppointmentTime()->format('H:i');
+            
+            // Calculate end time (1 hour after start)
+            $endDateTime = clone $appointment->getAppointmentTime();
+            $endDateTime = $endDateTime->modify('+1 hour');
+            $endTime = $endDateTime->format('H:i');
+            
+            $jsStatus = ($appointment->getStatus() === 'Completed') ? 'completed' : 'planned';
+            
+            $dbEvents[] = [
+                'id' => 'db_' . $appointment->getId(),
+                'title' => $appointment->getReason() ?: 'Consultation',
+                'type' => 'consultation',
+                'status' => $jsStatus,
+                'date' => $appointment->getAppointmentDate()->format('Y-m-d'),
+                'start' => $startTime,
+                'end' => $endTime,
+                'patient' => $appointment->getPatient()->getName(),
+                'notes' => $appointment->getNotes() ?? ''
+            ];
+        }
+
         return $this->render('pages/doctor_calendar.html.twig', [
-            'doctorId' => $id
+            'doctor' => $doctor,
+            'dbEvents' => json_encode($dbEvents),
         ]);
     }
 
