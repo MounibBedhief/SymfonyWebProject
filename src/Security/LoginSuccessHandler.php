@@ -19,7 +19,7 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
 
         if ($user instanceof Doctor) {
             return new RedirectResponse(
-                $this->router->generate('doctors_profile', ['id' => $user->getId()])
+                $this->router->generate('doctors_profile')
             );
         }
 

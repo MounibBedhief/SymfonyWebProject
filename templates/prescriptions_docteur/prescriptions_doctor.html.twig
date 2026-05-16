@@ -26,7 +26,7 @@
         </nav>
 
         <div class="nav-actions">
-            <a href="#" class="profile-account me-3">
+            <a href="{{ path('appointments_list') }}" class="profile-account me-3">
                 <img src="https://img.freepik.com/free-photo/female-doctor-hospital-with-stethoscope_23-2148827774.jpg" alt="Profile" class="profile-avatar">
                 {# Utilisation de la variable passée par le contrôleur #}
                 <span class="profile-name">Dr. {{ doctor.name ?? 'Test Mode' }}</span>

@@ -15,6 +15,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class DoctorController extends AbstractController
 {
+    #[IsGranted('ROLE_PATIENT')]
     #[Route('/patient/doctors', name: 'doctors_search')]
     public function search(Request $request, DoctorRepository $repo): Response
     {
@@ -46,10 +47,10 @@ class DoctorController extends AbstractController
         );
     }
 
-    #[Route('/doctor/{id}/profile', name: 'doctors_profile')]
-    public function profile(int $id, DoctorRepository $repo, EntityManagerInterface $em, Request $request, SluggerInterface $slugger): Response
+    #[Route('/doctor/profile', name: 'doctors_profile')]
+    public function profile( EntityManagerInterface $em, Request $request, SluggerInterface $slugger): Response
     {
-        $doctor = $repo->find($id);
+        $doctor = $this->getUser();
 
         if (!$doctor) {
             throw $this->createNotFoundException('Doctor not found');
@@ -115,10 +116,10 @@ class DoctorController extends AbstractController
         ]);
     }
 
-    #[Route('/doctor/{id}/calendar', name: 'doctors_calendar')]
-    public function calendar(int $id, DoctorRepository $repo, Request $request): Response
+    #[Route('/doctor/calendar', name: 'doctors_calendar')]
+    public function calendar( Request $request): Response
     {
-        $doctor = $repo->find($id);
+        $doctor  = $this->getUser();
 
         if (!$doctor) {
             throw $this->createNotFoundException('Doctor not found');
@@ -162,11 +163,18 @@ class DoctorController extends AbstractController
         ]);
     }
 
-    #[Route('/patient/{id}/view-profile', name: 'doctors_view_profile')]
-    public function viewProfile(int $id): Response
+    #[Route('/patient/doctors/{id}/view-profile', name: 'doctors_view_profile')]
+    #[IsGranted('ROLE_PATIENT')]
+    public function viewProfile(int $id, DoctorRepository $repo): Response
     {
+        $doctor = $repo->find($id);
+
+        if (!$doctor) {
+            throw $this->createNotFoundException('Doctor not found');
+        }
+
         return $this->render('pages/view-profile.html.twig', [
-            'doctorId' => $id
+            'doctor' => $doctor
         ]);
     }
 }

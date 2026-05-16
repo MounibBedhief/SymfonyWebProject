@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AppointmentController extends AbstractController
 {
@@ -26,13 +27,13 @@ class AppointmentController extends AbstractController
 
     /**
      * Patient booking form — GET shows the form, POST creates the appointment.
-     * TODO: Replace hardcoded patient ID with $this->getUser() once Security bundle is done.
      */
     #[Route('/patient/book', name: 'appointments_book', methods: ['GET', 'POST'])]
-    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_PATIENT')]
+    #[IsGranted('ROLE_PATIENT')]
     public function book(Request $request): Response
     {
         $doctors = $this->doctorRepo->findAll();
+        $patient = $this->getUser();
 
         if ($request->isMethod('POST')) {
             $doctorId = $request->request->getInt('doctor_id');
@@ -41,16 +42,12 @@ class AppointmentController extends AbstractController
             $reason   = $request->request->get('reason', '');
             $notes    = $request->request->get('notes', '');
 
-            // Validate required fields
             if (!$doctorId || !$dateStr || !$timeStr) {
                 $this->addFlash('warning', 'Please fill in all required fields.');
                 return $this->redirectToRoute('appointments_book');
             }
 
-            $doctor  = $this->doctorRepo->find($doctorId);
-
-            // TODO: Hardcoded patient ID = 1 until Security bundle is ready
-            $patient = $this->getUser();
+            $doctor = $this->doctorRepo->find($doctorId);
 
             if (!$doctor || !$patient) {
                 $this->addFlash('danger', 'Doctor or patient not found.');
@@ -84,11 +81,10 @@ class AppointmentController extends AbstractController
     }
 
     /**
-     * Doctor's appointment dashboard — lists all appointments for the logged-in doctor.
-     * TODO: Replace hardcoded doctor ID with $this->getUser() once Security bundle is done.
      * JSON endpoint — Update appointment status (Accept / Decline / Complete).
      */
     #[Route('/doctor/appointments/update-status/{id}', name: 'appointments_update_status', methods: ['POST'])]
+    #[IsGranted('ROLE_DOCTOR')]
     public function updateStatus(int $id, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -100,9 +96,17 @@ class AppointmentController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid status'], 400);
         }
 
-        $appointment = $this->appointmentRepo->findOneBy([]);
+        $appointment = $this->appointmentRepo->find($id);
         if (!$appointment) {
             return new JsonResponse(['success' => false, 'message' => 'Appointment not found'], 404);
+        }
+
+        /** @var Doctor $currentUser */
+        $currentUser = $this->getUser();
+
+        // ✅ CORRECTION SÉCURITÉ SÛRE : On compare les IDs au lieu des objets entiers
+        if (!$appointment->getDoctor() || $appointment->getDoctor()->getId() !== $currentUser->getId()) {
+            return new JsonResponse(['success' => false, 'message' => 'Access Denied'], 403);
         }
 
         $appointment->setStatus($newStatus);
@@ -112,9 +116,10 @@ class AppointmentController extends AbstractController
     }
 
     /**
-     * JSON endpoint — Reschedule an appointment (update date + time, reset status to Pending).
+     * JSON endpoint — Reschedule an appointment.
      */
     #[Route('/doctor/appointments/reschedule/{id}', name: 'appointments_reschedule', methods: ['POST'])]
+    #[IsGranted('ROLE_DOCTOR')]
     public function reschedule(int $id, Request $request): JsonResponse
     {
         $data    = json_decode($request->getContent(), true);
@@ -130,6 +135,14 @@ class AppointmentController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Appointment not found'], 404);
         }
 
+        /** @var Doctor $currentUser */
+        $currentUser = $this->getUser();
+
+        // ✅ CORRECTION SÉCURITÉ SÛRE : Idem ici, comparaison par ID
+        if (!$appointment->getDoctor() || $appointment->getDoctor()->getId() !== $currentUser->getId()) {
+            return new JsonResponse(['success' => false, 'message' => 'Access Denied'], 403);
+        }
+
         try {
             $appointment->setAppointmentDate(new \DateTimeImmutable($newDate));
             $appointment->setAppointmentTime(new \DateTimeImmutable($newTime));
@@ -141,11 +154,16 @@ class AppointmentController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid date/time format'], 400);
         }
     }
+
+    /**
+     * Doctor's appointment dashboard.
+     */
     #[Route('/doctor/appointments', name: 'appointments_list', methods: ['GET'])]
+    #[IsGranted('ROLE_DOCTOR')]
     public function list(): Response
     {
-        // TODO: Hardcoded doctor ID = 1 until Security bundle is ready
-        $doctor = $this->doctorRepo->findOneBy([]);
+        /** @var Doctor $doctor */
+        $doctor = $this->getUser();
 
         if (!$doctor) {
             throw $this->createNotFoundException('Doctor not found.');
@@ -153,7 +171,6 @@ class AppointmentController extends AbstractController
 
         $appointments = $this->appointmentRepo->getAppointmentsForDoctor($doctor);
 
-        // Calculate quick stats
         $stats = ['total' => count($appointments), 'pending' => 0, 'scheduled' => 0, 'completed' => 0];
         foreach ($appointments as $appt) {
             $status = strtolower($appt->getStatus());
@@ -162,7 +179,6 @@ class AppointmentController extends AbstractController
             }
         }
 
-        // Serialize appointments to JSON for the client-side detail views
         $appointmentsJson = [];
         foreach ($appointments as $appt) {
             $appointmentsJson[] = [
@@ -184,8 +200,4 @@ class AppointmentController extends AbstractController
             'appointmentsJson' => json_encode($appointmentsJson),
         ]);
     }
-
-    /**
-     * JSON endpoint — Update appointment status (Accept / Decline / Complete).
-     */
 }

@@ -15,6 +15,8 @@
     <div class="nav-links">
       <a href="{{ path('home') }}">Home</a>
       <a href="{{ path('appointments_list') }}">Appointments</a>
+        <a href="{{ path('doctors_calendar', {id: doctor.id}) }}">Calendar</a>
+        <a href="{{ path('app_doctor_prescriptions') }}">Prescriptions</a>
     </div>
     <div class="nav-actions">
       <span class="profile-account">
@@ -153,130 +155,132 @@
   </div>
 
   <script>
-    // Appointments data injected from Symfony controller
-    const appointments = {{ appointmentsJson|raw }};
-    let currentAppointmentId = null;
+      // Appointments data injected from Symfony controller
+      const appointments = {{ appointmentsJson|raw }};
+      let currentAppointmentId = null;
 
-    // ── UI View Switching ──
-    function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
-    }
-
-    function goBack() {
-      showPage('listPage');
-    }
-
-    // ── Filtering ──
-    function filterAppointments(status) {
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
-      const cards = document.querySelectorAll('.appt-card');
-      cards.forEach(card => {
-        if (status === 'all' || card.dataset.status === status) {
-          card.style.display = 'grid';
-        } else {
-          card.style.display = 'none';
-        }
-      });
-    }
-
-    // ── Detail View ──
-    function viewDetails(id) {
-      currentAppointmentId = id;
-      const appt = appointments.find(a => a.id == id);
-      if (!appt) return;
-
-      document.getElementById('detailPatientName').innerText = appt.patient_name;
-      document.getElementById('detailDate').innerText = new Date(appt.appointment_date).toLocaleDateString();
-      document.getElementById('detailTime').innerText = appt.appointment_time.substring(0, 5);
-      document.getElementById('detailReason').innerText = appt.reason || 'General';
-      document.getElementById('detailNotes').innerText = appt.notes || 'No additional notes provided.';
-
-      const banner = document.getElementById('detailBanner');
-      const statusLabel = document.getElementById('detailStatusLabel');
-      const statusSub = document.getElementById('detailStatusSub');
-      const actionBtns = document.getElementById('actionButtons');
-      const secondaryBtns = document.getElementById('secondaryActionButtons');
-
-      statusLabel.innerText = 'Status: ' + appt.status;
-
-      if (appt.status === 'Pending') {
-        banner.style.background = 'var(--amber-50)';
-        banner.style.borderColor = 'var(--amber-200)';
-        statusLabel.style.color = 'var(--amber-600)';
-        statusSub.innerText = 'Awaiting your confirmation';
-        actionBtns.style.display = 'grid';
-        secondaryBtns.style.display = 'none';
-      } else if (appt.status === 'Scheduled') {
-        banner.style.background = 'var(--blue-brand-50)';
-        banner.style.borderColor = 'var(--blue-brand-100)';
-        statusLabel.style.color = 'var(--blue-brand-700)';
-        statusSub.innerText = 'Appointment is confirmed';
-        actionBtns.style.display = 'none';
-        secondaryBtns.style.display = 'block';
-      } else {
-        banner.style.background = 'var(--gray-100)';
-        banner.style.borderColor = 'var(--gray-200)';
-        statusLabel.style.color = 'var(--gray-600)';
-        statusSub.innerText = 'Appointment closed';
-        actionBtns.style.display = 'none';
-        secondaryBtns.style.display = 'none';
+      // ── UI View Switching ──
+      function showPage(pageId) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          document.getElementById(pageId).classList.add('active');
       }
 
-      showPage('detailPage');
-    }
-
-    // ── API: Update Status ──
-    async function updateStatus(newStatus) {
-      if (!confirm(`Are you sure you want to mark this as ${newStatus}?`)) return;
-
-      try {
-        const response = await fetch(`/appointments/update-status/${currentAppointmentId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          location.reload();
-        } else {
-          alert('Error: ' + data.message);
-        }
-      } catch (error) {
-        alert('Network error occurred.');
+      function goBack() {
+          showPage('listPage');
       }
-    }
 
-    // ── API: Reschedule ──
-    async function promptReschedule() {
-      const newDate = prompt("Enter new date (YYYY-MM-DD):");
-      if (!newDate) return;
-      const newTime = prompt("Enter new time (HH:MM):");
-      if (!newTime) return;
+      // ── Filtering ──
+      function filterAppointments(status) {
+          document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+          if (event && event.target) {
+              event.target.classList.add('active');
+          }
 
-      try {
-        const response = await fetch(`/appointments/reschedule/${currentAppointmentId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            new_date: newDate,
-            new_time: newTime + ':00'
-          })
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          location.reload();
-        } else {
-          alert('Error: ' + data.message);
-        }
-      } catch (error) {
-        alert('Network error occurred.');
+          const cards = document.querySelectorAll('.appt-card');
+          cards.forEach(card => {
+              if (status === 'all' || card.dataset.status === status) {
+                  card.style.display = 'grid';
+              } else {
+                  card.style.display = 'none';
+              }
+          });
       }
-    }
+
+      // ── Detail View ──
+      function viewDetails(id) {
+          currentAppointmentId = id;
+          const appt = appointments.find(a => a.id == id);
+          if (!appt) return;
+
+          document.getElementById('detailPatientName').innerText = appt.patient_name;
+          document.getElementById('detailDate').innerText = new Date(appt.appointment_date).toLocaleDateString();
+          document.getElementById('detailTime').innerText = appt.appointment_time.substring(0, 5);
+          document.getElementById('detailReason').innerText = appt.reason || 'General';
+          document.getElementById('detailNotes').innerText = appt.notes || 'No additional notes provided.';
+
+          const banner = document.getElementById('detailBanner');
+          const statusLabel = document.getElementById('detailStatusLabel');
+          const statusSub = document.getElementById('detailStatusSub');
+          const actionBtns = document.getElementById('actionButtons');
+          const secondaryBtns = document.getElementById('secondaryActionButtons');
+
+          statusLabel.innerText = 'Status: ' + appt.status;
+
+          if (appt.status === 'Pending') {
+              banner.style.background = 'var(--amber-50)';
+              banner.style.borderColor = 'var(--amber-200)';
+              statusLabel.style.color = 'var(--amber-600)';
+              statusSub.innerText = 'Awaiting your confirmation';
+              actionBtns.style.display = 'grid';
+              secondaryBtns.style.display = 'none';
+          } else if (appt.status === 'Scheduled') {
+              banner.style.background = 'var(--blue-brand-50)';
+              banner.style.borderColor = 'var(--blue-brand-100)';
+              statusLabel.style.color = 'var(--blue-brand-700)';
+              statusSub.innerText = 'Appointment is confirmed';
+              actionBtns.style.display = 'none';
+              secondaryBtns.style.display = 'block';
+          } else {
+              banner.style.background = 'var(--gray-100)';
+              banner.style.borderColor = 'var(--gray-200)';
+              statusLabel.style.color = 'var(--gray-600)';
+              statusSub.innerText = 'Appointment closed';
+              actionBtns.style.display = 'none';
+              secondaryBtns.style.display = 'none';
+          }
+
+          showPage('detailPage');
+      }
+
+      // ── API: Update Status ──
+      async function updateStatus(newStatus) {
+          if (!confirm(`Are you sure you want to mark this as ${newStatus}?`)) return;
+
+          try {
+              // ✅ CORRECTION URL : Ajout du préfixe /doctor
+              const response = await fetch(`/doctor/appointments/update-status/${currentAppointmentId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ status: newStatus })
+              });
+
+              const data = await response.json();
+              if (data.success) {
+                  location.reload();
+              } else {
+                  alert('Error: ' + data.message);
+              }
+          } catch (error) {
+              alert('Network error occurred.');
+          }
+      }
+
+      // ── API: Reschedule ──
+      async function promptReschedule() {
+          const newDate = prompt("Enter new date (YYYY-MM-DD):");
+          if (!newDate) return;
+          const newTime = prompt("Enter new time (HH:MM):");
+          if (!newTime) return;
+
+          try {
+              // ✅ CORRECTION URL : Ajout du préfixe /doctor
+              const response = await fetch(`/doctor/appointments/reschedule/${currentAppointmentId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      new_date: newDate,
+                      new_time: newTime + ':00'
+                  })
+              });
+
+              const data = await response.json();
+              if (data.success) {
+                  location.reload();
+              } else {
+                  alert('Error: ' + data.message);
+              }
+          } catch (error) {
+              alert('Network error occurred.');}}
   </script>
 </body>
 
