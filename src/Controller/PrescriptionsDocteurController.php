@@ -16,7 +16,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class PrescriptionsDocteurController extends AbstractController
 {
-    #[Route('/prescriptions/doctor/', name: 'app_doctor_prescriptions', methods: ['GET', 'POST'])]
+    #[Route('doctor/prescriptions/', name: 'app_doctor_prescriptions', methods: ['GET', 'POST'])]
     public function prescriptions(
         Request $request,
         AppointmentRepository $appointmentRepo,

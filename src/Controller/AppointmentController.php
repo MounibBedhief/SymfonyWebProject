@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/appointments')]
 class AppointmentController extends AbstractController
 {
     public function __construct(
@@ -29,7 +28,7 @@ class AppointmentController extends AbstractController
      * Patient booking form — GET shows the form, POST creates the appointment.
      * TODO: Replace hardcoded patient ID with $this->getUser() once Security bundle is done.
      */
-    #[Route('/book', name: 'appointments_book', methods: ['GET', 'POST'])]
+    #[Route('/patient/book', name: 'appointments_book', methods: ['GET', 'POST'])]
     public function book(Request $request): Response
     {
         $doctors = $this->doctorRepo->findAll();
@@ -88,7 +87,7 @@ class AppointmentController extends AbstractController
      * TODO: Replace hardcoded doctor ID with $this->getUser() once Security bundle is done.
      * JSON endpoint — Update appointment status (Accept / Decline / Complete).
      */
-    #[Route('/update-status/{id}', name: 'appointments_update_status', methods: ['POST'])]
+    #[Route('/doctor/appointments/update-status/{id}', name: 'appointments_update_status', methods: ['POST'])]
     public function updateStatus(int $id, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -114,7 +113,7 @@ class AppointmentController extends AbstractController
     /**
      * JSON endpoint — Reschedule an appointment (update date + time, reset status to Pending).
      */
-    #[Route('/reschedule/{id}', name: 'appointments_reschedule', methods: ['POST'])]
+    #[Route('/doctor/appointments/reschedule/{id}', name: 'appointments_reschedule', methods: ['POST'])]
     public function reschedule(int $id, Request $request): JsonResponse
     {
         $data    = json_decode($request->getContent(), true);
@@ -141,7 +140,7 @@ class AppointmentController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid date/time format'], 400);
         }
     }
-    #[Route('/', name: 'appointments_list', methods: ['GET'])]
+    #[Route('/doctor/appointments', name: 'appointments_list', methods: ['GET'])]
     public function list(): Response
     {
         // TODO: Hardcoded doctor ID = 1 until Security bundle is ready

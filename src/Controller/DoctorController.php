@@ -13,10 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-#[Route('/doctors')]
 class DoctorController extends AbstractController
 {
-    #[Route('/', name: 'doctors_search')]
+    #[Route('/patient/doctors', name: 'doctors_search')]
     public function search(Request $request, DoctorRepository $repo): Response
     {
         $name = trim($request->query->get('name', ''));
@@ -47,11 +46,11 @@ class DoctorController extends AbstractController
         );
     }
 
-    #[Route('/{id}/profile', name: 'doctors_profile')]
+    #[Route('/doctor/{id}/profile', name: 'doctors_profile')]
     public function profile(int $id, DoctorRepository $repo, EntityManagerInterface $em, Request $request, SluggerInterface $slugger): Response
     {
         $doctor = $repo->find($id);
-        
+
         if (!$doctor) {
             throw $this->createNotFoundException('Doctor not found');
         }
@@ -116,18 +115,18 @@ class DoctorController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/calendar', name: 'doctors_calendar')]
+    #[Route('/doctor/{id}/calendar', name: 'doctors_calendar')]
     public function calendar(int $id, DoctorRepository $repo, Request $request): Response
     {
         $doctor = $repo->find($id);
-        
+
         if (!$doctor) {
             throw $this->createNotFoundException('Doctor not found');
         }
 
         // Fetch appointments for this doctor
         $appointments = $doctor->getAppointments();
-        
+
         // Format appointments for JS calendar
         $dbEvents = [];
         foreach ($appointments as $appointment) {
@@ -136,14 +135,14 @@ class DoctorController extends AbstractController
             }
 
             $startTime = $appointment->getAppointmentTime()->format('H:i');
-            
+
             // Calculate end time (1 hour after start)
             $endDateTime = clone $appointment->getAppointmentTime();
             $endDateTime = $endDateTime->modify('+1 hour');
             $endTime = $endDateTime->format('H:i');
-            
+
             $jsStatus = ($appointment->getStatus() === 'Completed') ? 'completed' : 'planned';
-            
+
             $dbEvents[] = [
                 'id' => 'db_' . $appointment->getId(),
                 'title' => $appointment->getReason() ?: 'Consultation',
@@ -163,7 +162,7 @@ class DoctorController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/view-profile', name: 'doctors_view_profile')]
+    #[Route('/patient/{id}/view-profile', name: 'doctors_view_profile')]
     public function viewProfile(int $id): Response
     {
         return $this->render('pages/view-profile.html.twig', [
