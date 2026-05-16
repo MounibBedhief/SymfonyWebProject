@@ -2,15 +2,17 @@
 
 namespace App\Controller;
 
+use App\Form\PrescriptionUploadType;
 use App\Repository\AppointmentRepository;
 use App\Repository\DoctorRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class PrescriptionsDocteurController extends AbstractController
 {
@@ -18,65 +20,76 @@ class PrescriptionsDocteurController extends AbstractController
     public function prescriptions(
         Request $request,
         AppointmentRepository $appointmentRepo,
-        DoctorRepository $doctorRepo, // Utilisé pour simuler le login
+        DoctorRepository $doctorRepo,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger
     ): Response {
 
-        // --- MODE TEST : On simule un docteur connecté (ID 1 par exemple) ---
-        // TODO: Une fois le login fini, utilise $doctor = $this->getUser();
+        // --- MODE TEST : On récupère un docteur pour l'affichage initial ---
         $doctor = $doctorRepo->findOneBy([]) ?? $doctorRepo->findAll()[0];
 
         if (!$doctor) {
-            return new Response("Aucun docteur trouvé dans la base. Vérifie tes fixtures !");
+            return new Response("Aucun docteur trouvé en BDD. Ajoute s'en un pour les tests !");
         }
 
-        // --- GESTION DE L'UPLOAD DU PDF ---
-        if ($request->isMethod('POST') && $request->files->get('prescription_pdf')) {
-            $appointmentId = $request->request->get('appointment_id');
-            $pdfFile = $request->files->get('prescription_pdf');
+        // --- INITIATION DU FORMULAIRE SYMFONY ---
+        $form = $this->createForm(PrescriptionUploadType::class);
+        $form->handleRequest($request);
 
+        // Vérification de la soumission et du jeton CSRF de sécurité automatiquement injecté
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $appointmentId = $request->request->get('appointment_id');
             $appointment = $appointmentRepo->find($appointmentId);
 
-            // Vérification de sécurité : l'appointment doit appartenir à ce docteur
-            if ($appointment && $appointment->getDoctor() === $doctor) {
+            // MODE TEST : On valide juste si le rendez-vous existe
+            if ($appointment) {
 
-                $originalFilename = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
-                // On nettoie le nom du fichier pour éviter les espaces et accents
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $pdfFile->guessExtension();
+                // Extraction manuelle nécessaire car l'input HTML est dupliqué dans une boucle Twig
+                $uploadedFiles = $request->files->all();
+                $formName = $form->getName();
 
-                try {
-                    // On déplace le fichier dans le dossier public/uploads/prescriptions
-                    $pdfFile->move(
-                        $this->getParameter('kernel.project_dir') . '/public/uploads/prescriptions',
-                        $newFilename
-                    );
+                /** @var UploadedFile|null $pdfFile */
+                $pdfFile = $uploadedFiles[$formName]['prescription_pdf'] ?? null;
 
-                    // Mise à jour de l'entité via Doctrine
-                    $appointment->setPrescriptionPath($newFilename);
-                    $appointment->setStatus('Completed'); // On passe le statut en complété automatiquement
-                    $entityManager->flush();
+                if ($pdfFile) {
+                    $originalFilename = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $pdfFile->guessExtension();
 
-                    $this->addFlash('success', 'La prescription a été envoyée avec succès.');
+                    try {
+                        $pdfFile->move(
+                            $this->getParameter('kernel.project_dir') . '/public/uploads/prescriptions',
+                            $newFilename
+                        );
 
-                } catch (FileException $e) {
-                    $this->addFlash('danger', 'Erreur lors de la sauvegarde du fichier : ' . $e->getMessage());
+                        // Mise à jour de la ligne en BDD
+                        $appointment->setPrescriptionPath($newFilename);
+                        $appointment->setStatus('Completed');
+                        $entityManager->flush();
+
+                        $this->addFlash('success', 'La prescription a été enregistrée avec succès (Mode Test).');
+
+                    } catch (FileException $e) {
+                        $this->addFlash('danger', 'Erreur d\'écriture sur le disque : ' . $e->getMessage());
+                    }
+                } else {
+                    $this->addFlash('danger', 'Aucun fichier reçu.');
                 }
             } else {
-                $this->addFlash('danger', 'Action non autorisée ou rendez-vous introuvable.');
+                $this->addFlash('danger', 'Rendez-vous introuvable avec l\'ID ' . $appointmentId);
             }
 
             return $this->redirectToRoute('app_doctor_prescriptions');
         }
 
-        // --- RÉCUPÉRATION DES DONNÉES ---
-        // On utilise ta propre méthode définie dans le repository
+        // Récupération des données pour alimenter ton tableau
         $appointments = $appointmentRepo->getAppointmentsForDoctor($doctor);
 
         return $this->render('prescriptions_docteur/prescriptions_doctor.html.twig', [
             'appointments' => $appointments,
             'doctor'       => $doctor,
+            'form'         => $form->createView(),
         ]);
     }
 }

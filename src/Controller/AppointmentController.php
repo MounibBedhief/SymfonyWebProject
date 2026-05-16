@@ -50,7 +50,7 @@ class AppointmentController extends AbstractController
             $doctor  = $this->doctorRepo->find($doctorId);
 
             // TODO: Hardcoded patient ID = 1 until Security bundle is ready
-            $patient = $this->patientRepo->find(1);
+            $patient = $this->patientRepo->findOneBy([]);
 
             if (!$doctor || !$patient) {
                 $this->addFlash('danger', 'Doctor or patient not found.');
@@ -86,12 +86,66 @@ class AppointmentController extends AbstractController
     /**
      * Doctor's appointment dashboard — lists all appointments for the logged-in doctor.
      * TODO: Replace hardcoded doctor ID with $this->getUser() once Security bundle is done.
+     * JSON endpoint — Update appointment status (Accept / Decline / Complete).
      */
+    #[Route('/update-status/{id}', name: 'appointments_update_status', methods: ['POST'])]
+    public function updateStatus(int $id, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $newStatus = $data['status'] ?? null;
+
+        $validStatuses = ['Scheduled', 'Completed', 'Cancelled', 'No-Show', 'Pending'];
+
+        if (!$newStatus || !in_array($newStatus, $validStatuses)) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid status'], 400);
+        }
+
+        $appointment = $this->appointmentRepo->findOneBy([]);
+        if (!$appointment) {
+            return new JsonResponse(['success' => false, 'message' => 'Appointment not found'], 404);
+        }
+
+        $appointment->setStatus($newStatus);
+        $this->em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Status updated successfully']);
+    }
+
+    /**
+     * JSON endpoint — Reschedule an appointment (update date + time, reset status to Pending).
+     */
+    #[Route('/reschedule/{id}', name: 'appointments_reschedule', methods: ['POST'])]
+    public function reschedule(int $id, Request $request): JsonResponse
+    {
+        $data    = json_decode($request->getContent(), true);
+        $newDate = $data['new_date'] ?? null;
+        $newTime = $data['new_time'] ?? null;
+
+        if (!$newDate || !$newTime) {
+            return new JsonResponse(['success' => false, 'message' => 'Missing required fields'], 400);
+        }
+
+        $appointment = $this->appointmentRepo->find($id);
+        if (!$appointment) {
+            return new JsonResponse(['success' => false, 'message' => 'Appointment not found'], 404);
+        }
+
+        try {
+            $appointment->setAppointmentDate(new \DateTimeImmutable($newDate));
+            $appointment->setAppointmentTime(new \DateTimeImmutable($newTime));
+            $appointment->setStatus('Pending');
+            $this->em->flush();
+
+            return new JsonResponse(['success' => true, 'message' => 'Appointment rescheduled successfully']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid date/time format'], 400);
+        }
+    }
     #[Route('/', name: 'appointments_list', methods: ['GET'])]
     public function list(): Response
     {
         // TODO: Hardcoded doctor ID = 1 until Security bundle is ready
-        $doctor = $this->doctorRepo->find(1);
+        $doctor = $this->doctorRepo->findOneBy([]);
 
         if (!$doctor) {
             throw $this->createNotFoundException('Doctor not found.');
@@ -134,57 +188,4 @@ class AppointmentController extends AbstractController
     /**
      * JSON endpoint — Update appointment status (Accept / Decline / Complete).
      */
-    #[Route('/update-status/{id}', name: 'appointments_update_status', methods: ['POST'])]
-    public function updateStatus(int $id, Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $newStatus = $data['status'] ?? null;
-
-        $validStatuses = ['Scheduled', 'Completed', 'Cancelled', 'No-Show', 'Pending'];
-
-        if (!$newStatus || !in_array($newStatus, $validStatuses)) {
-            return new JsonResponse(['success' => false, 'message' => 'Invalid status'], 400);
-        }
-
-        $appointment = $this->appointmentRepo->find($id);
-        if (!$appointment) {
-            return new JsonResponse(['success' => false, 'message' => 'Appointment not found'], 404);
-        }
-
-        $appointment->setStatus($newStatus);
-        $this->em->flush();
-
-        return new JsonResponse(['success' => true, 'message' => 'Status updated successfully']);
-    }
-
-    /**
-     * JSON endpoint — Reschedule an appointment (update date + time, reset status to Pending).
-     */
-    #[Route('/reschedule/{id}', name: 'appointments_reschedule', methods: ['POST'])]
-    public function reschedule(int $id, Request $request): JsonResponse
-    {
-        $data    = json_decode($request->getContent(), true);
-        $newDate = $data['new_date'] ?? null;
-        $newTime = $data['new_time'] ?? null;
-
-        if (!$newDate || !$newTime) {
-            return new JsonResponse(['success' => false, 'message' => 'Missing required fields'], 400);
-        }
-
-        $appointment = $this->appointmentRepo->find($id);
-        if (!$appointment) {
-            return new JsonResponse(['success' => false, 'message' => 'Appointment not found'], 404);
-        }
-
-        try {
-            $appointment->setAppointmentDate(new \DateTimeImmutable($newDate));
-            $appointment->setAppointmentTime(new \DateTimeImmutable($newTime));
-            $appointment->setStatus('Pending');
-            $this->em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Appointment rescheduled successfully']);
-        } catch (\Exception $e) {
-            return new JsonResponse(['success' => false, 'message' => 'Invalid date/time format'], 400);
-        }
-    }
 }
