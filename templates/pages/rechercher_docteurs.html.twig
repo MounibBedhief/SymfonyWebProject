@@ -78,7 +78,7 @@
         {% for doc in doctors %}
           <div class="doctors-card doctors-hover">
             <img
-              src="{{ doc.imagePath ? asset('uploads/' ~ doc.imagePath) : 'https://placehold.co/400x300' }}"
+              src="{{ doc.imagePath ? asset('uploads/' ~ doc.imagePath) : asset('images/default_doctor.svg') }}"
               class="doctors-img"
               alt="Dr {{ doc.name }}"
             />
@@ -97,7 +97,7 @@
             </div>
 
             <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
-              <a href="{{ path('appointments_book') }}" class="doctors-btn doctors-btn-primary" style="margin-bottom: 0.5rem">Book Now</a>
+              <a href="{{ path('appointments_book', { doctor_id: doc.id }) }}" class="doctors-btn doctors-btn-primary" style="margin-bottom: 0.5rem">Book Now</a>
               <a href="{{ path('doctors_view_profile', { id: doc.id }) }}" class="doctors-btn doctors-btn-outline">View Profile</a>
             </div>
           </div>

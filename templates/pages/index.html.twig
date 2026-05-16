@@ -40,7 +40,7 @@ session_start();
         <div class="nav-actions">
           <a href="../login_signup/login-register.php?force_login=1" class="signin">Sign In</a>
           <a href="../dashboard_client/patient.php" class="btn">Dashboard</a>
-          <a href="../book/book.php" class="btn">Book Appointment</a>
+          <a href="{{ path('appointments_book') }}" class="btn">Book Appointment</a>
         </div>
       </header>
 
@@ -59,7 +59,7 @@ session_start();
               anytime you need.
             </p>
             <div class="hero-buttons">
-              <a href="../book/book.php" class="btn-primary">
+              <a href="{{ path('appointments_book') }}" class="btn-primary">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -462,7 +462,7 @@ session_start();
       {% for doctor in doctors %}
         <div class="doctors-card doctors-hover">
           <img
-            src="{{ doctor.imagePath ? asset(doctor.imagePath) : 'https://placehold.co/400x300' }}"
+            src="{{ doctor.imagePath ? asset(doctor.imagePath) : asset('images/default_doctor.svg') }}"
             class="doctors-img"
             alt="{{ doctor.name }}"
           />
@@ -480,7 +480,7 @@ session_start();
             </div>
           </div>
           <div style="padding: 1rem; border-top: 1px solid #f0f0f0">
-            <a href="{{ path('appointments_book') }}" class="doctors-btn doctors-btn-primary" style="margin-bottom: 0.5rem">
+            <a href="{{ path('appointments_book', { doctor_id: doctor.id }) }}" class="doctors-btn doctors-btn-primary" style="margin-bottom: 0.5rem">
               Book Now
             </a>
             <a href="{{ path('doctors_view_profile', { id: doctor.id }) }}" class="doctors-btn doctors-btn-outline">
@@ -509,8 +509,8 @@ session_start();
             of healthcare.
           </p>
           <div class="cta-actions">
-            <a href="../book/book.php" class="btn book-btn">Book Your Appointment</a>
-            <a href="../rechercher_docteurs/rechercher_docteurs.php" class="btn doctors-btn">Find a Doctor</a>
+            <a href="{{ path('appointments_book') }}" class="btn book-btn">Book Your Appointment</a>
+            <a href="{{ path('doctors_search') }}" class="btn doctors-btn">Find a Doctor</a>
           </div>
 
           <hr class="cta-divider" />

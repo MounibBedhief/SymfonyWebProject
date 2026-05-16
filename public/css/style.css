@@ -668,6 +668,7 @@ footer {
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 .doctors-sidebar {
@@ -684,6 +685,8 @@ footer {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
   border-radius: 20px;
   padding: 25px;
+  width: auto;
+  min-width: unset;
 }
 
 .doctors-sidebar h5 {
@@ -708,44 +711,56 @@ footer {
 }
 
 .doctors-grid {
-  flex: 1 1 0%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 24px;
   width: 100%;
+  min-width: 0;
+  padding: 10px 0 20px 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 992px) {
-  .doctors-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Custom scrollbar */
+.doctors-grid::-webkit-scrollbar {
+  height: 6px;
 }
-
-@media (max-width: 600px) {
-  .doctors-grid {
-    grid-template-columns: 1fr;
-  }
+.doctors-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+.doctors-grid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.doctors-grid::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .doctors-card {
   background-color: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 24px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex: 0 0 300px;
+  width: 300px;
+  min-width: 300px;
+  scroll-snap-align: start;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .doctors-hover:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(10, 108, 255, 0.1);
+  transform: translateY(-8px);
+  box-shadow: 0 16px 32px rgba(10, 108, 255, 0.12);
   border-color: rgba(10, 108, 255, 0.3);
 }
 
 .doctors-img {
   width: 100%;
-  height: 240px;
+  height: 200px;
   object-fit: cover;
   background-color: #eee;
   transition: transform 0.5s ease;

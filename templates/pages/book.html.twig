@@ -1,43 +1,5 @@
-<?php
-require_once '../backend/autoloader.php';
-
-session_start();
-
-if (empty($_SESSION['user_id'])) {
-  header('Location: ../login_signup/login-register.php?force_login=1');
-  exit;
-}
-$repository=new Repository_database();
-$doctors = $repository->getAllDoctors();
-$selected_doctor_id = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : null;
-$message="";
-$messageClass="";
-if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['book_submit'])){
-  $patient_id = $_SESSION['user_id'];
-  $doctor_id = $_POST['doctor_id'];
-  $appointment_date = $_POST['appointment_date'];
-  $appointment_time = $_POST['appointment_time'];
-  $reason = $_POST['reason'];
-  $notes = $_POST['notes'];
-  if (!empty($doctor_id) && !empty($appointment_date) && !empty($appointment_time) ) {
-    if($repository->bookAppointment($patient_id, $doctor_id, $appointment_date, $appointment_time, $reason, $notes)) {
-      $message = "Your appointment has been booked successfully!";
-      $messageClass = "alert-success";
-    }
-    else {
-      $message = "Failed to book the appointment. Please try again.";
-      $messageClass = "alert-danger";
-    }
-    }
-    else {
-        $message = "Please fill in all required fields.";
-        $messageClass = "alert-warning";
-    }
-}
-?>
-
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -54,17 +16,22 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['book_submit'])){
         <span>Connect</span>
       </h2>
       <nav class="navigation">
-        <a href="../homepage/connected.php" class="btn-home">Home</a>
+        <a href="{{ path('home') }}" class="btn-home">Home</a>
       </nav>
     </header>
     <div class="wrapper">
-      <?php if ($message): ?>
-    <div class="alert <?php echo $messageClass; ?>"><?php echo $message; ?></div>
-<?php endif; ?>
+
+      {# --- Flash messages --- #}
+      {% for label, messages in app.flashes %}
+        {% for message in messages %}
+          <div class="alert alert-{{ label }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endfor %}
+
       <div class="form-box-book">
         <h2>Book Your Appointment</h2>
         <p class="subtitle">Schedule a consultation with one of our trusted doctors</p>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" class="appointment-form">
+        <form action="{{ path('appointments_book') }}" method="POST" class="appointment-form">
           <div class="form-grid">
             <div class="input-box">
               <input type="text" name="full_name" required />
@@ -86,14 +53,13 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['book_submit'])){
 
             <div class="input-box">
               <select name="doctor_id" id="doctorSelect" required>
-        <option value="" disabled <?php echo ($selected_doctor_id == 0) ? 'selected' : ''; ?>>Select a Doctor</option>
-        <?php foreach ($doctors as $doctor): ?>
-            <option value="<?php echo $doctor['id']; ?>" <?php echo ($selected_doctor_id == $doctor['id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($doctor['name'] . " (" . $doctor['specialization'] . ")"); ?>
-            </option>
-        <?php endforeach; ?>
-      </select>
-              <label>Choose Doctor</label>
+                <option value="" disabled {{ not app.request.query.get('doctor_id') ? 'selected' : '' }}>Select a Doctor</option>
+                {% for doctor in doctors %}
+                  <option value="{{ doctor.id }}" {{ app.request.query.get('doctor_id') == doctor.id ? 'selected' : '' }}>
+                    {{ doctor.name }} ({{ doctor.specialization }})
+                  </option>
+                {% endfor %}
+              </select>
             </div>
 
             <div class="input-box">
@@ -109,25 +75,13 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['book_submit'])){
             </div>
 
             <div class="input-box full-width">
-              <textarea name="notes" ></textarea>
+              <textarea name="notes"></textarea>
               <label>Additional Notes</label>
               <span class="icon"><ion-icon name="document-text-outline"></ion-icon></span>
             </div>
           </div>
 
-          <button type="submit" name="book_submit" class="btn-main full-width">Book Appointment</button>
-          <script type="module">
-            import { doctors } from "{{ asset('js/doctor-data.js') }}";
-
-            const select = document.getElementById("doctorSelect");
-
-            doctors.forEach((doctor) => {
-              const option = document.createElement("option");
-              option.value = doctor.id; // use ID
-              option.textContent = doctor.name; // use name
-              select.appendChild(option);
-            });
-          </script>
+          <button type="submit" class="btn-main full-width">Book Appointment</button>
         </form>
       </div>
     </div>
